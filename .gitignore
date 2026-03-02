@@ -10,3 +10,4 @@ Thumbs.db
 # Secrets (nunca commitar)
 *.env
 credentials/
+.claude/
