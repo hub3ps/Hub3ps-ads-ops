@@ -74,7 +74,7 @@ O prompt define:
 
 - **Papel:** Analista sênior de Google Ads especializado em clínicas odontológicas NZ
 - **Contexto do grupo:** Clínicas do mesmo dono com papéis exclusivos (reorganização estratégica)
-- **Sistema de fases:** Fase 1 (Reorganização), Fase 2 (Estabilização), Fase 3 (Manutenção) — cada fase LIMITA o que a IA pode recomendar
+- **Sistema de fases:** Fase 1 (Reorganização), Fase 2 (Estabilização), Fase 3 (Manutenção) — cada fase define dois tipos de tarefa no ClickUp: tarefas de OTIMIZAÇÃO (ação direta) e tarefas de SUGESTÃO ESTRUTURAL (para revisão humana). A IA pode sugerir mudanças estruturais em qualquer fase, mas quem decide é o gestor.
 - **Processo de análise:** 10 passos incluindo Diagnóstico IS, Performance campanha/adgroup, Keywords/QS, Ad Copy/RSA, Geo, Ad Schedule, Conversões, Search Terms, Governança, Alinhamento com reorganização
 - **Regras de output:** Dashboard com tabelas, Governance Violations, Checklist numerado com impacto em NZD, projeção de CPA, critério de sucesso com prazo. 17 restrições obrigatórias
 - **Regras críticas:** NUNCA recomendar negativa que já existe; NUNCA recomendar keyword existente; NUNCA pausar keyword inexistente; preventivos marcados com tag [PREVENTIVO]
