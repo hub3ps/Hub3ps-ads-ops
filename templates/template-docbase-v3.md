@@ -279,13 +279,15 @@ Os dados desta conta no Supabase cobrem apenas a partir de [AAAA-MM-DD]. A janel
 
 ## 1) Fase atual e roadmap
 
-A conta opera em um modelo de fases. A IA deve ajustar suas recomendações conforme a fase vigente.
+A conta opera em um modelo de fases. A IA deve ajustar o tipo de tarefa que cria no ClickUp conforme a fase vigente.
 
-| Fase | Nome | Descrição | IA pode recomendar | IA NÃO deve recomendar |
-|---|---|---|---|---|
-| 1 | **REORGANIZAÇÃO** | Criar estrutura, implementar negativas de governança, corrigir violations, estabilizar sinais | Negativas, correções táticas, blindagem de governança, ajustes de landing/RSA pontuais | Mudanças estruturais grandes, expansão de serviços, aumento agressivo de budget, novos ad groups |
-| 2 | **ESTABILIZAÇÃO** | Estrutura final atingida, refinando performance e tCPAs | Ajustes de tCPA, budget (com evidência), keywords EXACT, match types, RSAs, testes A/B | Reestruturação de campanhas/ad groups, mudança de papel das campanhas |
-| 3 | **MANUTENÇÃO & MELHORIA CONTÍNUA** | Conta madura, foco em manter resultados e melhorar incrementalmente | Tudo: expansão controlada, testes, novos clusters, otimização contínua | Desviar do papel definido no playbook/group_reorganization |
+| Fase | Nome | Descrição | IA cria tarefa de OTIMIZAÇÃO no ClickUp | IA cria tarefa de SUGESTÃO ESTRUTURAL no ClickUp (para revisão humana) | IA NÃO deve recomendar |
+|---|---|---|---|---|---|
+| 1 | **REORGANIZAÇÃO** | Criar estrutura, implementar negativas de governança, corrigir violations, estabilizar sinais | Negativas, correções táticas, blindagem de governança, ajustes de landing/RSA pontuais | Reestruturação de campanhas/ad groups, novos ad groups, mudança de bidding strategy, realocação significativa de budget — deve incluir: problema identificado com dados, proposta concreta, justificativa, resultado esperado | Expansão para serviços proibidos pelo group_reorganization |
+| 2 | **ESTABILIZAÇÃO** | Estrutura final atingida, refinando performance e tCPAs | Ajustes de tCPA, budget (com evidência), keywords EXACT, match types, RSAs, testes A/B | Reestruturação de campanhas, mudança de papel das campanhas, criação de novas campanhas — deve incluir: problema identificado com dados, proposta concreta, justificativa, resultado esperado | Desviar do papel definido no playbook/group_reorganization |
+| 3 | **MANUTENÇÃO & MELHORIA CONTÍNUA** | Conta madura, foco em manter resultados e melhorar incrementalmente | Tudo: expansão controlada, testes, novos clusters, otimização contínua | N/A — nesta fase a IA pode criar tarefas de otimização para tudo | Desviar do papel definido no playbook/group_reorganization |
+
+**Regra para tarefas de SUGESTÃO ESTRUTURAL:** A IA pode identificar e recomendar mudanças que excedem o escopo da fase atual. Essas recomendações são criadas no ClickUp como tarefas de sugestão (não de otimização direta). Cada sugestão DEVE conter: (a) problema identificado com dados, (b) proposta concreta, (c) justificativa, (d) resultado esperado. O gestor analisa, decide e registra sua decisão como comentário na tarefa.
 
 ### Fase atual: [1/2/3] — [REORGANIZAÇÃO/ESTABILIZAÇÃO/MANUTENÇÃO]
 

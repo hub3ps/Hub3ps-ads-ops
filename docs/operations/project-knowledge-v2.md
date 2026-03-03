@@ -86,13 +86,15 @@ O Guilherme pode referir-se às clínicas de várias formas:
 
 ### CRÍTICO: Respeitar a Fase Atual
 
-Cada conta opera em uma fase específica que **limita** o que a IA pode recomendar. A fase atual está documentada no `history_ops` de cada cliente.
+Cada conta opera em uma fase específica que define o tipo de tarefa que a IA pode criar no ClickUp. A fase atual está documentada no `history_ops` de cada cliente.
 
-| Fase | Nome | IA PODE recomendar | IA NÃO PODE recomendar |
-|------|------|-------------------|------------------------|
-| 1 | **REORGANIZAÇÃO** | Negativas, correções táticas, blindagem de governança, ajustes pontuais de landing/RSA | Mudanças estruturais grandes, expansão de serviços, aumento agressivo de budget, novos ad groups |
-| 2 | **ESTABILIZAÇÃO** | Ajustes de tCPA, budget (com evidência), keywords EXACT, match types, RSAs, testes A/B | Reestruturação de campanhas/ad groups, mudança de papel das campanhas |
-| 3 | **MANUTENÇÃO** | Tudo: expansão controlada, testes, novos clusters, otimização contínua | Desviar do papel definido no playbook/group_reorganization |
+| Fase | Nome | IA cria tarefa de OTIMIZAÇÃO | IA cria tarefa de SUGESTÃO ESTRUTURAL (para revisão humana) | IA NÃO deve recomendar |
+|------|------|------------------------------|-------------------------------------------------------------|------------------------|
+| 1 | **REORGANIZAÇÃO** | Negativas, correções táticas, blindagem de governança, ajustes pontuais de landing/RSA | Reestruturação de campanhas/ad groups, novos ad groups, mudança de bidding strategy, realocação significativa de budget | Expansão para serviços proibidos pelo group_reorganization |
+| 2 | **ESTABILIZAÇÃO** | Ajustes de tCPA, budget (com evidência), keywords EXACT, match types, RSAs, testes A/B | Reestruturação de campanhas, mudança de papel das campanhas, criação de novas campanhas | Desviar do papel definido no playbook/group_reorganization |
+| 3 | **MANUTENÇÃO** | Tudo: expansão controlada, testes, novos clusters, otimização contínua | N/A — nesta fase a IA pode criar tarefas de otimização para tudo | Desviar do papel definido no playbook/group_reorganization |
+
+**Regra para tarefas de SUGESTÃO ESTRUTURAL:** Quando a IA identificar uma oportunidade de melhoria que excede o escopo de otimização da fase atual, ela cria no ClickUp uma tarefa de sugestão (não de otimização direta). Cada sugestão DEVE conter: (a) problema identificado com dados, (b) proposta concreta, (c) justificativa, (d) resultado esperado. O gestor analisa, decide e registra sua decisão como comentário na tarefa.
 
 ### Como identificar a fase atual
 
@@ -174,7 +176,7 @@ A function retorna um JSON com estrutura `{ "context_payload": { ... } }` conten
 | 8 | SEMPRE incluir dados de suporte (métricas) em cada recomendação | Justificativa |
 | 9 | SEMPRE agrupar negativas por campanha/ad group quando aplicável | Organização |
 | 10 | NUNCA recomendar aumento de budget sem evidência de Lost IS > 20% | Budget desperdiçado |
-| 11 | NUNCA recomendar mudança de bidding strategy em Fase 1 | Muito cedo |
+| 11 | Mudança de bidding strategy em Fase 1 só como SUGESTÃO ESTRUTURAL (nunca como otimização direta) | Requer revisão humana |
 | 12 | SEMPRE verificar `recent_optimizations` antes de recomendar | Evita repetição |
 | 13 | SEMPRE verificar `skipped_actions` para reconsiderar com novos dados | Segunda chance |
 | 14 | SEMPRE incluir projeção de impacto em NZD quando possível | Valor tangível |
@@ -236,14 +238,38 @@ A function retorna um JSON com estrutura `{ "context_payload": { ... } }` conten
 {projeção em NZD ou % quando aplicável}
 ```
 
+**Formato da descrição para subtask de SUGESTÃO ESTRUTURAL:**
+
+```markdown
+**Tipo:** ⚡ SUGESTÃO ESTRUTURAL (requer aprovação do gestor)
+**Categoria:** {category}
+**Escopo:** {scope} → {scope_detail}
+**Campanha:** {campaign_name}
+
+**Problema identificado:**
+{descrição do problema com dados do payload}
+
+**Proposta concreta:**
+{o que a IA sugere mudar}
+
+**Justificativa:**
+{por que essa mudança é necessária, com métricas}
+
+**Resultado esperado:**
+{projeção de impacto em CPA, IS, conversões, etc.}
+```
+
+Tarefas de sugestão estrutural seguem o mesmo fluxo: o gestor analisa, decide e registra sua decisão como comentário na tarefa no ClickUp. Se aprovada, a IA pode criar tarefas de otimização derivadas no próximo ciclo.
+
 **Formato da descrição da task-pai:**
 
 ```markdown
 Análise realizada em {data} com base nos dados de {_metadata.metrics_window_7d.date_start} a {_metadata.anchor_date}.
 
 **Fase atual da conta:** {fase} — {nome_fase}
+**Tipo de tarefa:** {OTIMIZAÇÃO | SUGESTÃO ESTRUTURAL}
 
-**Resumo:** {N} otimizações identificadas para a campanha {campaign_name}.
+**Resumo:** {N} recomendações identificadas para a campanha {campaign_name}.
 
 **Prioridades:**
 - 🔴 Urgente: {N}
