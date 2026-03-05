@@ -5,7 +5,7 @@
 **Dataset:** `Importacao_MCC_Producao`
 **Região:** `southamerica-east1` (São Paulo)
 **MCC ID:** 2135330960
-**Contagem:** 10 canon views + 88 views auto-geradas + ~100 tabelas base `p_ads_*` + 1 tabela referência
+**Contagem:** 11 canon views + 88 views auto-geradas + ~100 tabelas base `p_ads_*` + 1 tabela referência
 
 ---
 
@@ -17,6 +17,8 @@
 |---|---|---|---|---|
 | `Importacao_MCC_AuctionInsights_GAQL_Diaria` | Google Ads (GAQL customizado) | `Importacao_MCC_Producao` | Every 24h | ✅ Ativo |
 | `Importacao_MCC_Producao` | Google Ads (padrão) | `Importacao_MCC_Producao` | Every 24h | ✅ Ativo |
+| `Google Ads - Campaign Negatives GAQL` | Google Ads (GAQL customizado) | `Importacao_MCC_Producao` | Every day 21:00 | ✅ Ativo |
+| `Google Ads - Shared Negatives GAQL` | Google Ads (GAQL customizado) | `Importacao_MCC_Producao` | Every day 21:00 | ✅ Ativo |
 | `Importacao_Diaria_GoogleAds` | Google Ads | `google_ads_raw` | Every 24h | ⛔ Inativo (legado) |
 
 ### 1.2 Datasets
@@ -35,6 +37,7 @@
 | `canon_{nome}` | View customizada (nosso código) | `canon_campaign_daily` |
 | `ref_{nome}` | Tabela de referência (upload manual) | `ref_geo_target_constants` |
 | `p_ads_gaql_{nome}_{MCC_ID}` | Tabela GAQL customizada (via Data Transfer) | `p_ads_gaql_campaign_is_daily_2135330960` |
+| `ads_gaql_{nome}_{MCC_ID}` | Tabela GAQL customizada (sem prefixo p_ na view) | `ads_campaign_negatives_2135330960` |
 
 ### 1.4 Padrão das Views Auto-Geradas
 
@@ -466,6 +469,91 @@ GROUP BY
 
 ---
 
+### 2.11 `canon_negatives_inventory`
+
+**Fontes:** `ads_Keyword_2135330960` + `ads_campaign_negatives_2135330960` (GAQL) + `ads_shared_negatives_2135330960` (GAQL) + `ads_campaign_shared_sets_2135330960` (GAQL) + `ads_Campaign_2135330960` + `ads_AdGroup_2135330960`
+**Destino Supabase:** `negatives_inventory`
+
+```sql
+-- Ad group level negatives
+SELECT
+  k.customer_id,
+  k.campaign_id,
+  c.campaign_name,
+  k.ad_group_id,
+  ag.ad_group_name,
+  'AD_GROUP' AS source_type,
+  CAST(NULL AS INT64) AS shared_set_id,
+  CAST(NULL AS STRING) AS shared_set_name,
+  k.ad_group_criterion_keyword_text AS keyword_text,
+  k.ad_group_criterion_keyword_match_type AS match_type
+FROM `gothic-well-487118-r1.Importacao_MCC_Producao.ads_Keyword_2135330960` k
+JOIN `gothic-well-487118-r1.Importacao_MCC_Producao.ads_Campaign_2135330960` c
+  ON k.campaign_id = c.campaign_id AND c._DATA_DATE = c._LATEST_DATE
+JOIN `gothic-well-487118-r1.Importacao_MCC_Producao.ads_AdGroup_2135330960` ag
+  ON k.ad_group_id = ag.ad_group_id AND ag._DATA_DATE = ag._LATEST_DATE
+WHERE k._DATA_DATE = k._LATEST_DATE
+  AND k.ad_group_criterion_negative = TRUE
+  AND c.campaign_status = 'ENABLED'
+  AND ag.ad_group_status = 'ENABLED'
+
+UNION ALL
+
+-- Campaign level negatives
+SELECT
+  cn.customer_id,
+  cn.campaign_id,
+  c.campaign_name,
+  CAST(NULL AS INT64) AS ad_group_id,
+  CAST(NULL AS STRING) AS ad_group_name,
+  'CAMPAIGN' AS source_type,
+  CAST(NULL AS INT64) AS shared_set_id,
+  CAST(NULL AS STRING) AS shared_set_name,
+  cn.campaign_criterion_keyword_text AS keyword_text,
+  cn.campaign_criterion_keyword_match_type AS match_type
+FROM `gothic-well-487118-r1.Importacao_MCC_Producao.ads_campaign_negatives_2135330960` cn
+JOIN `gothic-well-487118-r1.Importacao_MCC_Producao.ads_Campaign_2135330960` c
+  ON cn.campaign_id = c.campaign_id AND c._DATA_DATE = c._LATEST_DATE
+WHERE cn._DATA_DATE = cn._LATEST_DATE
+  AND cn.campaign_criterion_negative = TRUE
+  AND cn.campaign_criterion_type = 'KEYWORD'
+  AND c.campaign_status = 'ENABLED'
+
+UNION ALL
+
+-- Shared list negatives (expanded per campaign)
+SELECT
+  sn.customer_id,
+  cs.campaign_id,
+  cs.campaign_name,
+  CAST(NULL AS INT64) AS ad_group_id,
+  CAST(NULL AS STRING) AS ad_group_name,
+  'SHARED_LIST' AS source_type,
+  sn.shared_set_id,
+  sn.shared_set_name,
+  sn.shared_criterion_keyword_text AS keyword_text,
+  sn.shared_criterion_keyword_match_type AS match_type
+FROM `gothic-well-487118-r1.Importacao_MCC_Producao.ads_shared_negatives_2135330960` sn
+JOIN `gothic-well-487118-r1.Importacao_MCC_Producao.ads_campaign_shared_sets_2135330960` cs
+  ON sn.shared_set_id = cs.shared_set_id AND sn.customer_id = cs.customer_id
+  AND cs._DATA_DATE = cs._LATEST_DATE
+JOIN `gothic-well-487118-r1.Importacao_MCC_Producao.ads_Campaign_2135330960` c
+  ON cs.campaign_id = c.campaign_id AND c._DATA_DATE = c._LATEST_DATE
+WHERE sn._DATA_DATE = sn._LATEST_DATE
+  AND sn.shared_criterion_type = 'KEYWORD'
+  AND cs.campaign_shared_set_status = 'ENABLED'
+  AND c.campaign_status = 'ENABLED'
+```
+
+**Notas:**
+- Filtra ENABLED cascade: campanha ENABLED + ad group ENABLED (para scope AD_GROUP)
+- Campaign-level: apenas campanhas ENABLED
+- Shared lists: expandidas por campanha vinculada (1 keyword × N campanhas = N linhas). Apenas vínculos ENABLED.
+- Fontes campaign e shared: transferências GAQL customizadas (ads_campaign_negatives_* e ads_shared_negatives_* + ads_campaign_shared_sets_*)
+- Não usa âncora temporal (snapshot do estado atual, não métricas diárias)
+
+---
+
 ## 3. Tabelas de Referência
 
 ### 3.1 `ref_geo_target_constants`
@@ -679,7 +767,66 @@ Todas as tabelas `p_ads_*` são particionadas por `DATE(_PARTITIONTIME)` e cont�
 
 ---
 
-### 4.10 Mapa: Tabela Base → Canon View → Supabase
+### 4.10 `ads_campaign_negatives_2135330960`
+
+**Usada por:** `canon_negatives_inventory` (campaign-level negatives)
+**Origem:** GAQL customizado via Data Transfer `Google Ads - Campaign Negatives GAQL`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `campaign_criterion_criterion_id` | INT64 | ID do critério |
+| `campaign_id` | INT64 | ID da campanha |
+| `customer_id` | INT64 | ID do cliente |
+| `campaign_criterion_keyword_match_type` | STRING | Match type (BROAD, PHRASE, EXACT) |
+| `campaign_criterion_keyword_text` | STRING | Texto da keyword negativa |
+| `campaign_criterion_negative` | BOOL | Sempre TRUE para negativas |
+| `campaign_criterion_status` | STRING | Status (ENABLED) |
+| `campaign_criterion_type` | STRING | Tipo de critério (KEYWORD, LOCATION, etc.) |
+| `campaign_name` | STRING | Nome da campanha |
+| `_LATEST_DATE` | DATE | Data mais recente |
+| `_DATA_DATE` | DATE | Data do registro |
+
+**Nota:** GAQL não suporta WHERE, então a tabela contém TODOS os campaign criteria (negativos e positivos, keywords e locations). Filtrar `campaign_criterion_negative = TRUE AND campaign_criterion_type = 'KEYWORD'` na view.
+
+---
+
+### 4.11 `ads_shared_negatives_2135330960`
+
+**Usada por:** `canon_negatives_inventory` (shared list items)
+**Origem:** GAQL customizado via Data Transfer `Google Ads - Shared Negatives GAQL`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `customer_id` | INT64 | ID do cliente |
+| `shared_set_id` | INT64 | ID da shared list |
+| `shared_criterion_keyword_match_type` | STRING | Match type (BROAD, PHRASE, EXACT) |
+| `shared_criterion_keyword_text` | STRING | Texto da keyword negativa |
+| `shared_criterion_type` | STRING | Tipo (KEYWORD) |
+| `shared_set_name` | STRING | Nome da lista (ex: "Default Negative Keywords") |
+| `_LATEST_DATE` | DATE | Data mais recente |
+| `_DATA_DATE` | DATE | Data do registro |
+
+---
+
+### 4.12 `ads_campaign_shared_sets_2135330960`
+
+**Usada por:** `canon_negatives_inventory` (vínculo shared list ↔ campanha)
+**Origem:** GAQL customizado via Data Transfer `Google Ads - Shared Negatives GAQL`
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `campaign_id` | INT64 | ID da campanha |
+| `customer_id` | INT64 | ID do cliente |
+| `shared_set_id` | INT64 | ID da shared list |
+| `campaign_name` | STRING | Nome da campanha |
+| `campaign_shared_set_status` | STRING | Status do vínculo (ENABLED, REMOVED) |
+| `shared_set_name` | STRING | Nome da lista |
+| `_LATEST_DATE` | DATE | Data mais recente |
+| `_DATA_DATE` | DATE | Data do registro |
+
+---
+
+### 4.13 Mapa: Tabela Base → Canon View → Supabase
 
 | Tabela Base | Canon View que a Usa | Campos-chave |
 |---|---|---|
@@ -692,6 +839,9 @@ Todas as tabelas `p_ads_*` são particionadas por `DATE(_PARTITIONTIME)` e cont�
 | `p_ads_CampaignConversionStats_2135330960` | `canon_conversions_by_action_window` | segments_conversion_action_name, metrics_conversions |
 | `p_ads_GeoStats_2135330960` | `canon_geo_performance_window` | segments_geo_target_most_specific_location, geographic_view_location_type |
 | `p_ads_HourlyCampaignStats_2135330960` | `canon_hourly_campaign_window` | segments_hour, segments_day_of_week |
+| `ads_campaign_negatives_2135330960` (GAQL) | `canon_negatives_inventory` | customer_id, campaign_id, keyword_text, match_type, negative |
+| `ads_shared_negatives_2135330960` (GAQL) | `canon_negatives_inventory` | customer_id, shared_set_id, keyword_text, match_type |
+| `ads_campaign_shared_sets_2135330960` (GAQL) | `canon_negatives_inventory` | customer_id, campaign_id, shared_set_id, status |
 
 ---
 

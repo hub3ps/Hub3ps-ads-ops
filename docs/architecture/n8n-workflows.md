@@ -2,8 +2,8 @@
 
 **Gerado em:** 2026-02-20 | **Verificado:** JSON do workflow exportado direto do n8n
 **Trigger:** Manual (`When clicking 'Execute workflow'`)
-**Branches paralelos:** 12 (todas as branches disparam simultaneamente)
-**Total de nodes:** ~50
+**Branches paralelos:** 13 (todas as branches disparam simultaneamente)
+**Total de nodes:** ~53
 
 ---
 
@@ -31,7 +31,8 @@ Manual Trigger
 ├── canon_keyword_daily           → fact_keyword_daily           (UPSERT per-row)
 ├── canon_geo_performance_window  → fact_geo_performance_window  (DELETE+INSERT)
 ├── canon_ad_copy_inventory       → ad_copy_inventory            (UPSERT per-row)
-└── canon_hourly_campaign_window  → fact_hourly_campaign_window  (DELETE+INSERT)
+├── canon_hourly_campaign_window  → fact_hourly_campaign_window  (DELETE+INSERT)
+└── canon_negatives_inventory  → negatives_inventory           (DELETE+INSERT)
 ```
 
 ### Padrões de Ingestão
@@ -40,7 +41,7 @@ Manual Trigger
 |---|---|---|
 | **UPSERT bulk** | campaign_daily, adgroup_daily, conversions, auction_insights, campaign_inventory, adgroup_inventory | `executeOnce=true` + `jsonb_array_elements($1::jsonb)` + `ON CONFLICT DO UPDATE` |
 | **UPSERT per-row** | keyword_inventory, keyword_daily, ad_copy_inventory | `executeOnce=false` + parâmetros posicionais ($1..$n) + `ON CONFLICT DO UPDATE` |
-| **DELETE+INSERT** | search_terms, geo_performance, hourly_campaign | DELETE por (external_customer_id, window_label) → INSERT full (evita orphans e duplicatas entre date ranges) *(FIX v3.2)* |
+| **DELETE+INSERT** | search_terms, geo_performance, hourly_campaign, negatives_inventory | DELETE por (external_customer_id, window_label) → INSERT full (evita orphans e duplicatas entre date ranges) *(FIX v3.2)* |
 
 ### Pipeline QA (3 branches)
 
@@ -1285,6 +1286,57 @@ FROM jsonb_array_elements($1::jsonb) r;
 
 ---
 
+### 3.13 `negatives_inventory`
+
+**Estratégia:** DELETE+INSERT (full refresh) | **QA:** Não | **executeOnce:** true
+
+#### BQ Read — `canon_negatives_inventory`
+
+```sql
+SELECT * FROM `gothic-well-487118-r1.Importacao_MCC_Producao.canon_negatives_inventory`
+```
+
+#### Code — `pack_neg_payload`
+
+```javascript
+const items = $input.all().map(i => i.json);
+return [{ json: { payload: JSON.stringify(items) } }];
+```
+
+#### PG Write — `ads.negatives_inventory`
+
+**queryReplacement:** `{{ [$json.payload] }}`
+
+```sql
+-- DELETE all existing
+DELETE FROM ads.negatives_inventory;
+
+-- INSERT new
+INSERT INTO ads.negatives_inventory (
+  external_customer_id, campaign_id, campaign_name,
+  ad_group_id, ad_group_name, source_type,
+  shared_set_id, shared_set_name,
+  keyword_text, match_type, updated_at
+)
+SELECT
+  (r->>'customer_id')::bigint,
+  (r->>'campaign_id')::bigint,
+  NULLIF(r->>'campaign_name','')::text,
+  NULLIF(r->>'ad_group_id','')::bigint,
+  NULLIF(r->>'ad_group_name','')::text,
+  (r->>'source_type')::text,
+  NULLIF(r->>'shared_set_id','')::bigint,
+  NULLIF(r->>'shared_set_name','')::text,
+  (r->>'keyword_text')::text,
+  (r->>'match_type')::text,
+  now()
+FROM jsonb_array_elements($1::jsonb) r;
+```
+
+**Nota:** Full refresh (DELETE ALL + INSERT ALL) em vez de DELETE por bounds — negativas são um snapshot completo do estado atual, sem window_label.
+
+---
+
 ## 4. Padrões Técnicos
 
 ### 4.1 Passagem de Parâmetros (BQ → PG)
@@ -1316,7 +1368,7 @@ O QA funciona assim para as 3 branches que o implementam:
 
 ## 5. Observações e Riscos
 
-### 5.1 Branches sem QA (9 de 12)
+### 5.1 Branches sem QA (10 de 13)
 
 As branches campaign_daily, adgroup_daily, inventários, keyword, geo, ad_copy e hourly **não têm verificação pós-escrita**. Se a inserção falhar silenciosamente, o dado fica defasado sem alerta.
 
@@ -1366,6 +1418,8 @@ canon_keyword_daily → ads.fact_keyword_daily
 canon_geo_performance_window → pack_gpw_payload → ads.fact_geo_performance_window
 canon_ad_copy_inventory → ads.ad_copy_inventory
 canon_hourly_campaign_window → pack_hpw_payload → ads.fact_hourly_campaign_window
+
+canon_negatives_inventory → pack_neg_payload → ads.negatives_inventory
 ```
 
 ---

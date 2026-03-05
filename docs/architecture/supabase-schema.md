@@ -1,7 +1,7 @@
 # Hub3ps Ads Ops — Schema Supabase (schema `ads`)
 
 **Gerado em:** 2026-02-20
-**Total:** 25 tabelas | 291 colunas | 391 constraints | 55 indexes | 2 functions
+**Total:** 24 tabelas | 289 colunas | 391 constraints | 55 indexes | 2 functions
 
 ---
 
@@ -13,8 +13,7 @@
 - `documents` (7 colunas)
 - `conversion_actions_contract` (11 colunas)
 - `intent_routing` (9 colunas)
-- `negatives_sets` (9 colunas)
-- `negatives_items` (5 colunas)
+- `negatives_inventory` (12 colunas)
 - `policy_issues` (10 colunas)
 - `saved_queries` (8 colunas)
 
@@ -142,40 +141,22 @@
 
 ---
 
-### `negatives_sets`
+### `negatives_inventory`
 
 | # | Coluna | Tipo | Nullable | Default | Notas |
 |---|---|---|---|---|---|
 | 1 | `id` | uuid | NO | gen_random_uuid() | 🔑 PK |
-| 2 | `external_customer_id` | bigint | NO |  | FK → `gads_accounts.external_customer_id` |
-| 3 | `scope` | text | NO |  |  |
-| 4 | `scope_id` | bigint | YES |  |  |
-| 5 | `version` | text | NO |  |  |
-| 6 | `source_ref` | text | YES |  |  |
-| 7 | `total_entries` | integer | YES |  |  |
-| 8 | `summary` | jsonb | YES |  |  |
-| 9 | `created_at` | timestamp with time zone | NO | now() |  |
-
-**Unique compostos:**
-- `(external_customer_id, scope, scope_id, version)`
-
-**Indexes adicionais:**
-- `idx_neg_sets_account`: `CREATE INDEX idx_neg_sets_account ON ads.negatives_sets USING btree (external_customer_id)`
-
----
-
-### `negatives_items`
-
-| # | Coluna | Tipo | Nullable | Default | Notas |
-|---|---|---|---|---|---|
-| 1 | `id` | uuid | NO | gen_random_uuid() | 🔑 PK |
-| 2 | `negatives_set_id` | uuid | NO |  | FK → `negatives_sets.id` |
-| 3 | `negative_text` | text | NO |  |  |
-| 4 | `match_type` | text | YES |  |  |
-| 5 | `created_at` | timestamp with time zone | NO | now() |  |
-
-**Indexes adicionais:**
-- `idx_neg_items_set`: `CREATE INDEX idx_neg_items_set ON ads.negatives_items USING btree (negatives_set_id)`
+| 2 | `external_customer_id` | bigint | NO |  |  |
+| 3 | `campaign_id` | bigint | NO |  |  |
+| 4 | `campaign_name` | text | YES |  |  |
+| 5 | `ad_group_id` | bigint | YES |  |  |
+| 6 | `ad_group_name` | text | YES |  |  |
+| 7 | `source_type` | text | NO |  | AD_GROUP, CAMPAIGN, SHARED_LIST |
+| 8 | `shared_set_id` | bigint | YES |  |  |
+| 9 | `shared_set_name` | text | YES |  |  |
+| 10 | `keyword_text` | text | NO |  |  |
+| 11 | `match_type` | text | NO |  |  |
+| 12 | `updated_at` | timestamp with time zone | NO | now() |  |
 
 ---
 

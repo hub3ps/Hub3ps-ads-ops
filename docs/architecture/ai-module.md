@@ -48,7 +48,7 @@ Só envia dados de entidades em veiculação real (ENABLED cascade). Negativas s
 | search_terms_top50_cost | fact_search_terms_window (ENABLED, LAST_30D) | Top 50 por custo + matched_keyword |
 | search_terms_top30_conversions | fact_search_terms_window (ENABLED, LAST_30D) | Top 30 por conversões |
 | search_terms_wasted_spend | fact_search_terms_window (ENABLED, LAST_30D) | Custo > NZD 5, zero conversões |
-| negative_keywords | negatives_sets + negatives_items (sem filtro) | Todas negativas: scope, applied_to, keywords |
+| negative_keywords | negatives_inventory (ENABLED cascade) | Negativas denormalizadas: source_type (AD_GROUP/CAMPAIGN/SHARED_LIST), keyword_text, match_type, campanha vinculada |
 
 ### Métricas Calculadas na Function
 - CPA = cost / conversions

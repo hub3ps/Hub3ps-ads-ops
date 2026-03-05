@@ -15,12 +15,13 @@
 | 7 | ~~Ad Schedule~~ | — | — | ✅ Implementado v3 |
 | 8 | ~~Ad Copy (RSA)~~ | — | — | ✅ Implementado v3 |
 | 9 | Assets | ads_Asset + ads_CampaignAssetStats | BAIXA | ⏸ Dados limitados |
+| 10 | ~~Negativas (pipeline automatizado)~~ | — | — | ✅ Implementado v3.3 (BQ GAQL + canon view + Supabase flat + n8n branch 13) |
 
 ## Operacional
 
 | # | Ação | Prioridade | Status |
 |---|---|---|---|
-| 1 | Configurar Schedule Trigger no n8n | ALTA | Pendente |
+| 1 | ~~Configurar Schedule Trigger no n8n~~ | — | ✅ Configurado (21:00 UTC diário) |
 | 2 | Adicionar QA nos branches 1 e 2 | MÉDIA | Pendente |
 | 3 | Limpar schema public | BAIXA | Pendente |
 | 4 | Interface para revisar recomendações | MÉDIA | Pendente |

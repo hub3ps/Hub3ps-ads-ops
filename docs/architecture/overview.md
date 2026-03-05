@@ -10,7 +10,7 @@ Versão 3.2 • Fevereiro 2026
 
 | Camada | Tecnologia | Função |
 |---|---|---|
-| Fonte de dados | Google Ads → BigQuery | Export automático nativo MCC + GAQL customizado de Impression Share |
+| Fonte de dados | Google Ads → BigQuery | Export automático nativo MCC + 3 transferências GAQL customizadas (Impression Share, Campaign Negatives, Shared Negatives) |
 | Transformação BQ | BigQuery Views (canon_*) | Agrega e normaliza dados em janelas LAST_7D / LAST_30D e snapshots diários |
 | Orquestração | n8n (acionado manualmente) | Lê views BQ → grava no schema ads.* do Supabase com UPSERT + QA |
 | Banco operacional | Supabase / PostgreSQL (schema ads) | Armazena métricas, inventário, keywords, negativas, recomendações, change log e docs |
@@ -35,7 +35,7 @@ Versão 3.2 • Fevereiro 2026
      │                                          │
      └── GAQL customizado (IS) ──────────► p_ads_gaql_* ──► canon_auction_insights_window
                                                 │
-                                           [n8n - 12 branches paralelos]
+                                           [n8n - 13 branches paralelos]
                                                 │
                                            [Supabase schema ads]
                                                 │
@@ -60,7 +60,7 @@ Só dados de entidades em veiculação real:
 - Campanhas: status = 'ENABLED'
 - Ad Groups: campanha ENABLED + ad group ENABLED
 - Keywords: campanha ENABLED + ad group ENABLED + keyword ENABLED
-- Negativas: SEM filtro (governança precisa ver tudo)
+- Negativas: Campanha ENABLED + Ad Group ENABLED (para ad group level). Shared lists: vínculo ENABLED + campanha ENABLED.
 
 ### Impression Share
 Vem exclusivamente do GAQL customizado (`p_ads_gaql_campaign_is_daily_*`), não do export padrão. Calculado como média ponderada por impressões diárias.
