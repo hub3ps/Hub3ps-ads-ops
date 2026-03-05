@@ -8,8 +8,8 @@ Sistema de análise automatizada de Google Ads com IA para clínicas odontológi
 Google Ads → BigQuery (canon views) → n8n (ETL) → Supabase (schema ads) → Claude Project (análise IA)
 ```
 
-- **BigQuery**: Projeto `gothic-well-487118-r1`, dataset `Importacao_MCC_Producao`. 10 canon views customizadas + GAQL para Impression Share.
-- **n8n**: 12 branches paralelos, trigger manual. Estratégias: UPSERT (maioria) e DELETE+INSERT (search terms, geo, hourly).
+- **BigQuery**: Projeto `gothic-well-487118-r1`, dataset `Importacao_MCC_Producao`. 11 canon views customizadas + 3 transferências GAQL (IS, Campaign Negatives, Shared Negatives).
+- **n8n**: 13 branches paralelos, trigger manual. Estratégias: UPSERT (maioria) e DELETE+INSERT (search terms, geo, hourly).
 - **Supabase**: Schema `ads`. Chave de negócio: `external_customer_id` (bigint). Pivô central: `gads_accounts`.
 - **Claude Project**: Recebe payload JSON da function `ads.build_analysis_payload()`. Prompt v8, análise em 10 passos.
 
@@ -20,7 +20,7 @@ Todas as contas são clínicas odontológicas NZ do mesmo dono, sob MCC 21353309
 ## Regras Críticas
 
 - **Âncora temporal**: Todas as views e a payload function usam `MAX(date)` da tabela fonte, nunca `CURRENT_DATE()`.
-- **Filtro ENABLED cascade**: Só entidades ativas (campanha → ad group → keyword/ad ENABLED). Negativas sem filtro.
+- **Filtro ENABLED cascade**: Só entidades ativas (campanha → ad group → keyword/ad ENABLED). Negativas: campanha ENABLED + ad group ENABLED; shared lists: vínculo ENABLED + campanha ENABLED.
 - **Impression Share**: Vem do GAQL customizado (`p_ads_gaql_*`), não do export padrão. Média ponderada por impressões.
 - **cost_micros**: Dividir por 1.000.000 para NZD.
 

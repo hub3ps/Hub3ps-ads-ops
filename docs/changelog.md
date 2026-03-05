@@ -4,6 +4,19 @@ Histórico de mudanças no projeto hub3ps-ads-ops.
 
 ---
 
+## v3.3 — Março 2026
+
+### Pipeline de Negativas Automatizado
+- **BigQuery**: 2 novas transferências GAQL customizadas (`Google Ads - Campaign Negatives GAQL` e `Google Ads - Shared Negatives GAQL`) para exportar negativas campaign-level e shared lists (Data Transfer nativo não cobre match_type nem SharedSet)
+- **BigQuery**: Nova canon view `canon_negatives_inventory` unificando 3 escopos (AD_GROUP, CAMPAIGN, SHARED_LIST) com filtro ENABLED cascade e shared lists expandidas por campanha vinculada
+- **Supabase**: Tabelas `negatives_sets` e `negatives_items` (modelo normalizado com import manual CSV) substituídas por `negatives_inventory` (tabela denormalizada flat, pipeline automatizado)
+- **n8n**: Branch 13 adicionada ao workflow Export_Insert — `canon_negatives_inventory` → `pack_neg_payload` → `ads.negatives_inventory` (DELETE+INSERT full refresh diário)
+- **Total pipeline**: 1.377 negativas sincronizadas (687 AD_GROUP + 101 CAMPAIGN + 589 SHARED_LIST) cobrindo 5 contas
+
+### Infraestrutura
+- BigQuery MCP connector habilitado no Claude.ai (OAuth + gcloud MCP endpoint)
+- Schedule Trigger configurado no n8n (21:00 UTC diário, substituindo trigger manual)
+
 ## v3.2 — Fevereiro 2026
 
 ### Fixes

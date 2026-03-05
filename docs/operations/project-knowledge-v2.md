@@ -135,7 +135,7 @@ A function retorna um JSON com estrutura `{ "context_payload": { ... } }` conten
 | `search_terms_top50_cost` | top 50 search terms por custo |
 | `search_terms_top30_conversions` | top 30 search terms por conversões |
 | `search_terms_wasted_spend` | search terms com custo > NZD 5 e zero conversões |
-| `negative_keywords` | listas e itens de negativas existentes |
+| `negative_keywords` | negativas denormalizadas por campanha (AD_GROUP + CAMPAIGN + SHARED_LIST expandida) |
 | `recent_optimizations` | otimizações dos últimos 30 dias (status DONE) |
 | `skipped_actions` | ações puladas para reconsideração |
 | `monitoring_items` | itens em monitoramento ativo |
