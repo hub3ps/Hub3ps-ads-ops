@@ -651,5 +651,5 @@ Hub3Ps (Workspace: 9013515285)
 
 ---
 
-*Hub3Ps Ads Operations — Project Knowledge v2.0*
-*Atualizado: 2026-02-25*
+*Hub3Ps Ads Operations — Project Knowledge v2.1*
+*Atualizado: 2026-03-05*
