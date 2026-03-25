@@ -8,7 +8,8 @@
       "Bash(brew --prefix)",
       "Read(//usr/**)",
       "Bash(echo $PATH)",
-      "Bash(export PATH=\"/opt/homebrew/bin:$PATH\")"
+      "Bash(export PATH=\"/opt/homebrew/bin:$PATH\")",
+      "Bash(npm install:*)"
     ]
   }
 }
