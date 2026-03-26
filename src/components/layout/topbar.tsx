@@ -43,7 +43,7 @@ const SignOutIcon = () => (
 // ── Topbar ────────────────────────────────────────────────────────────────────
 
 export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
-  const { accountName, displayName, loading } = useAccount();
+  const { accountName, displayName, firstName, loading } = useAccount();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -56,8 +56,9 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
     return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
   })();
 
-  const name = accountName || displayName || "Dashboard";
-  const initial = name.charAt(0).toUpperCase();
+  const greetingName = firstName || displayName?.split(" ")[0] || "there";
+  const avatarName = displayName || accountName || "Dashboard";
+  const initial = avatarName.charAt(0).toUpperCase();
 
   // Fetch email once
   useEffect(() => {
@@ -114,14 +115,22 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
           {loading ? (
             <div className="animate-pulse space-y-1.5">
               <div className="h-4 w-52 bg-[#f3f4f6] rounded" />
+              <div className="h-3 w-32 bg-[#f3f4f6] rounded" />
               <div className="h-3 w-40 bg-[#f3f4f6] rounded" />
             </div>
           ) : (
             <>
               <h1 className="text-[15px] md:text-[17px] font-semibold text-[#111827]">
-                {greeting}, <span className="text-[#4285F4]">{name}</span> 👋
+                {greeting}, <span className="text-[#4285F4]">{greetingName}</span> 👋
               </h1>
-              <p className="hidden sm:block text-[13px] text-[#9ca3af] mt-0.5">
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-[#9ca3af] shrink-0">
+                  <path d="M6 1C3.79 1 2 2.79 2 5C2 7.5 6 11 6 11C6 11 10 7.5 10 5C10 2.79 8.21 1 6 1Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+                  <circle cx="6" cy="5" r="1.5" stroke="currentColor" strokeWidth="1.2" />
+                </svg>
+                <span className="text-[13px] font-medium text-[#374151]">{accountName || "Dashboard"}</span>
+              </div>
+              <p className="hidden sm:block text-[12px] md:text-[13px] text-[#9ca3af] mt-0.5">
                 {new Date().toLocaleDateString("en-NZ", {
                   weekday: "long",
                   year: "numeric",
@@ -153,7 +162,7 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
                   {initial}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[13px] font-semibold text-[#111827] truncate">{name}</p>
+                  <p className="text-[13px] font-semibold text-[#111827] truncate">{avatarName}</p>
                   <p className="text-[11px] text-[#9ca3af] truncate">{email}</p>
                 </div>
               </div>
