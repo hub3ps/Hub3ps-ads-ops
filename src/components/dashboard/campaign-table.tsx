@@ -78,7 +78,7 @@ export function CampaignTable({ campaigns, compact = false }: CampaignTableProps
                         {Number(c.clicks).toLocaleString("en-NZ")}
                       </td>
                       <td className="px-4 py-3.5 text-[13px] text-[#374151] tabular-nums">
-                        {Number(c.conversions).toFixed(1)}
+                        {Math.round(Number(c.conversions))}
                       </td>
                     </>
                   )}

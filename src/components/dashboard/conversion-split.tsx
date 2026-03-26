@@ -59,7 +59,7 @@ export function ConversionSplit({ campaigns }: ConversionSplitProps) {
             </PieChart>
           </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="text-[18px] font-bold text-[#111827] tabular-nums">{totalConversions}</p>
+            <p className="text-[18px] font-bold text-[#111827] tabular-nums">{Math.round(totalConversions)}</p>
             <p className="text-[10px] text-[#9ca3af]">conv.</p>
           </div>
         </div>
@@ -72,7 +72,7 @@ export function ConversionSplit({ campaigns }: ConversionSplitProps) {
               <div key={entry.name}>
                 <div className="flex items-center justify-between mb-1">
                   <p className="text-[12px] text-[#374151] truncate max-w-[120px]">{entry.name}</p>
-                  <p className="text-[12px] font-semibold text-[#111827]">{entry.value}</p>
+                  <p className="text-[12px] font-semibold text-[#111827]">{Math.round(entry.value)}</p>
                 </div>
                 <div className="h-1.5 rounded-full bg-[#eceef2] overflow-hidden">
                   <div
