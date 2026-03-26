@@ -1,7 +1,7 @@
 # Ads AI Dashboard — Project Reference
 
 > Referência completa para conversas futuras e contexto após compactação.
-> **Última atualização:** 2026-03-26 (Sprint 6 — Deploy + Multi-client + Settings)
+> **Última atualização:** 2026-03-26 (Sprint 7 — Avatar dropdown + refinamento tipográfico)
 
 ---
 
@@ -221,6 +221,20 @@ textDim:       #9ca3af
 - PENDING → gray `#6b7280`
 - LOW → red `#EA4335`
 
+### Design tokens — padrão tipográfico das páginas
+
+```
+Page title (h1):  text-[22px] font-bold text-[#111827]
+Page subtitle:    text-[14px] text-[#9ca3af] mt-1
+Section h2:       text-[16px] font-semibold text-[#111827]
+Card padding:     p-7
+Labels:           text-[13px] font-medium text-[#6b7280] mb-2
+Inputs:           px-4 py-3 text-[14px] rounded-xl border border-[#e2e4ea]
+                  focus: border-[#4285F4] ring-2 ring-[#4285F4]/10
+```
+
+> Este padrão está documentado como comentário no topo de `settings/page.tsx` e deve ser seguido em novas páginas quando tocadas.
+
 ### Tailwind v4 — importante
 - Não existe `tailwind.config.ts` — tokens definidos em `@theme` block no `globals.css`
 - Cores custom: `bg-[#hex]` inline ou via CSS variables
@@ -378,6 +392,8 @@ src/
   4. **Performance Targets** — objective text, tabela CPA targets, tabela conversion actions, caixa amarela com tracking note
 
 ### Settings (`/dashboard/settings`)
+- Lê `?tab=` da URL via `useSearchParams` (wrapped em `<Suspense>` para o build de produção)
+- `router.replace(/dashboard/settings?tab=${id})` ao navegar entre seções
 - Menu lateral interno com 3 seções: Personal Data | Account | Change Password
 - **Personal Data** — grid 2 colunas: First Name, Last Name, Job Title, Country, Phone, Email (read-only)
   - Busca/salva em `dashboard_users` via `auth_user_id`; campos: `first_name`, `last_name`, `job_title`, `phone`, `country`
@@ -395,11 +411,11 @@ src/
 ### Sidebar (`src/components/layout/sidebar.tsx`)
 - **Multi-client:** `clients.length > 1` → mostra `<ClientSelector>` dropdown; caso contrário, info estática (nome + dot verde)
 - `ClientSelector` — dropdown com lista de clientes, checkmark no selecionado, chama `setSelectedClientId`
-- Botão "Sign out" no footer (`supabase.auth.signOut()` → `/login`)
+- Sem botão Sign out nem item Settings — ambos movidos para o dropdown do avatar no Topbar
 - Submenu Campaigns expansível: Performance / Ad Groups / Keywords / Ads
-- Item "Settings" com ícone de engrenagem, antes do logout
 - Auto-expande submenu quando qualquer `/dashboard/campaigns/*` está ativo
 - `NavItem` helper com prop `exact` para Overview
+- Nav items: `py-2.5`, sub-items campaigns: `py-2 text-[12.5px]`, gap entre items: `gap-1`
 
 ### AccountContext (`src/contexts/account-context.tsx`)
 ```typescript
@@ -416,6 +432,14 @@ interface AccountContextValue {
 }
 // Cadeia: auth.getUser() → dashboard_users (todos os rows) → gads_accounts (por selectedClientId)
 ```
+
+### Topbar (`src/components/layout/topbar.tsx`)
+- Avatar (círculo azul) abre dropdown com: header (nome + email), 3 links de Settings, Sign out
+- Links navegam para `/dashboard/settings?tab=personal|account|password`
+- Item ativo destacado quando `pathname.startsWith("/dashboard/settings")` + tab coincide
+- Click outside fecha via `useRef` + `mousedown` listener; animação `dropdownIn` (opacity + translateY)
+- Email buscado via `supabase.auth.getUser()` em `useEffect` local
+- Sign out: `supabase.auth.signOut()` + `router.push("/login")` + `router.refresh()`
 
 ### usePeriod
 ```typescript
@@ -476,7 +500,9 @@ const sorted = sortRows(rows, sort.column, sort.dir);
 - ✅ Insights: heatmap horário + auction insights
 - ✅ Optimization History: filtros status + categoria + período
 - ✅ Company Profile: 4 seções, parseia markdown, `content_md_en` com fallback
-- ✅ Settings: Personal Data (editable), Account (read-only), Change Password
+- ✅ Settings: Personal Data (editable), Account (read-only), Change Password; lê `?tab=` da URL; Suspense boundary
+- ✅ Topbar: dropdown no avatar com Settings (3 tabs) + Sign out
+- ✅ Tipografia refinada: tokens documentados em `settings/page.tsx` (22px bold / 14px / p-7 / inputs rounded-xl)
 - ✅ Loading skeletons em todas as páginas
 - ✅ TypeScript sem erros
 - ✅ Dockerfile com `output: standalone`, ARG/ENV para vars Supabase, deploy no EasyPanel
