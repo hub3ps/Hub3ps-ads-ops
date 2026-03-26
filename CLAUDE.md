@@ -1,7 +1,7 @@
 # Ads AI Dashboard — Project Reference
 
 > Referência completa para conversas futuras e contexto após compactação.
-> **Última atualização:** 2026-03-25 (Sprint 5 — Auth + RLS + Company Profile completo)
+> **Última atualização:** 2026-03-26 (Sprint 6 — Deploy + Multi-client + Settings)
 
 ---
 
@@ -11,7 +11,7 @@
 **Descrição:** Dashboard read-only para clientes de tráfego pago (Google Ads) consultarem performance das campanhas.
 **Público:** Clínicas odontológicas na Nova Zelândia (7 contas ativas).
 **Idioma da UI:** Inglês (clientes NZ). Conversas de dev em português brasileiro.
-**Fase atual:** MVP completo com Auth + RLS. Próximo passo: deploy no EasyPanel via Dockerfile.
+**Fase atual:** MVP completo — Auth + RLS + Deploy configurado. Em produção no EasyPanel.
 
 ---
 
@@ -110,7 +110,7 @@ auth.users (Supabase Auth)
 | `optimization_log`              | Log         | `external_customer_id` + `status` + `executed_at`    |
 | `documents`                     | Conteúdo    | `client_id` — campos: `doc_key`, `content_md`, `content_md_en` |
 | `clients`                       | Cadastro    | `id` (UUID) — `name`, `country`, `timezone`, `currency` |
-| `dashboard_users`               | Auth        | `auth_user_id` (UUID) → `client_id`, `role`, `display_name` |
+| `dashboard_users`               | Auth        | `auth_user_id` (UUID) → `client_id`, `role`, `display_name`, `first_name`, `last_name`, `job_title`, `phone`, `country`, `created_at` |
 | `gads_accounts`                 | Auth        | `external_customer_id` → `client_id`, `account_name` |
 | `v_keyword_metrics`             | View        | `external_customer_id` + `date` range (view do banco) |
 
@@ -159,10 +159,10 @@ auth.users (Supabase Auth)
 - Matcher: `['/dashboard/:path*', '/login']`
 
 ### AccountContext (`src/contexts/account-context.tsx`)
-- Busca `getUser()` → `dashboard_users` (pelo `auth_user_id`) → `gads_accounts` (pelo `client_id`)
-- Expõe: `{ accountId: number, accountName: string, displayName: string, loading: boolean }`
-- **Sem dropdown de conta** — a conta é determinada pelo login
-- Sem `setAccountId` — conta é imutável durante a sessão
+- Dois effects: Effect 1 carrega user + todos os `client_ids`; Effect 2 carrega `gads_accounts` quando `selectedClientId` muda
+- Expõe: `{ accountId, accountName, displayName, loading, clients, selectedClientId, setSelectedClientId }`
+- **Multi-client:** se `clients.length > 1`, sidebar mostra `ClientSelector` dropdown; se 1, mostra info estática
+- `clients: ClientOption[]` só é populado quando o user tem >1 cliente em `dashboard_users`
 
 ### Supabase client (`src/lib/supabase/client.ts`)
 ```typescript
@@ -261,12 +261,13 @@ src/
 │       │   └── ads/page.tsx                # Ads — RSA previews (Ad Copy)
 │       ├── optimizations/page.tsx          # Optimization History
 │       ├── profile/page.tsx                # Company Profile (parseia documentos markdown)
+│       ├── settings/page.tsx               # Settings (Personal Data, Account, Change Password)
 │       └── keywords/page.tsx               # Redirect → /dashboard/campaigns/keywords
 │
 ├── components/
 │   ├── ui/                                 # shadcn auto-generated
 │   ├── layout/
-│   │   ├── sidebar.tsx                     # Sidebar + logout button (sem client selector)
+│   │   ├── sidebar.tsx                     # Sidebar + ClientSelector (condicional) + Settings + logout
 │   │   ├── topbar.tsx                      # Greeting com accountName do contexto + skeleton
 │   │   └── footer.tsx
 │   ├── dashboard/
@@ -376,27 +377,44 @@ src/
   3. **Campaign Setup** — accordion por campanha: budget badge, bidding/schedule/coverage pills, tabela de ad groups com tCPA
   4. **Performance Targets** — objective text, tabela CPA targets, tabela conversion actions, caixa amarela com tracking note
 
+### Settings (`/dashboard/settings`)
+- Menu lateral interno com 3 seções: Personal Data | Account | Change Password
+- **Personal Data** — grid 2 colunas: First Name, Last Name, Job Title, Country, Phone, Email (read-only)
+  - Busca/salva em `dashboard_users` via `auth_user_id`; campos: `first_name`, `last_name`, `job_title`, `phone`, `country`
+  - Avatar com inicial do nome; botão "Change photo" desabilitado (futuro)
+  - Toast inline de sucesso/erro
+- **Account** — read-only: clínicas vinculadas, role, member since, plan "Professional" (hardcoded)
+  - Query: `dashboard_users.select("role, created_at, clients:client_id(name)")`
+- **Change Password** — validação min 8 chars + confirmação; `supabase.auth.updateUser({ password })`
+  - Toast inline de sucesso/erro
+
 ---
 
 ## 8. Componentes-Chave
 
 ### Sidebar (`src/components/layout/sidebar.tsx`)
-- **Sem client selector dropdown** — conta mostrada como info estática (nome + dot verde)
+- **Multi-client:** `clients.length > 1` → mostra `<ClientSelector>` dropdown; caso contrário, info estática (nome + dot verde)
+- `ClientSelector` — dropdown com lista de clientes, checkmark no selecionado, chama `setSelectedClientId`
 - Botão "Sign out" no footer (`supabase.auth.signOut()` → `/login`)
 - Submenu Campaigns expansível: Performance / Ad Groups / Keywords / Ads
+- Item "Settings" com ícone de engrenagem, antes do logout
 - Auto-expande submenu quando qualquer `/dashboard/campaigns/*` está ativo
 - `NavItem` helper com prop `exact` para Overview
 
 ### AccountContext (`src/contexts/account-context.tsx`)
 ```typescript
-// Interface atual — sem setAccountId, sem currentClient
+interface ClientOption { id: string; name: string; }
+
 interface AccountContextValue {
-  accountId: number;      // external_customer_id do Google Ads
-  accountName: string;    // nome da conta Google Ads
-  displayName: string;    // nome do utilizador (de dashboard_users)
+  accountId: number;          // external_customer_id do Google Ads
+  accountName: string;        // nome da conta Google Ads
+  displayName: string;        // nome do utilizador (de dashboard_users)
   loading: boolean;
+  clients: ClientOption[];    // lista de clientes (vazia se user tem só 1)
+  selectedClientId: string;   // client_id activo
+  setSelectedClientId: (id: string) => void;
 }
-// Cadeia de resolução: auth.getUser() → dashboard_users → gads_accounts
+// Cadeia: auth.getUser() → dashboard_users (todos os rows) → gads_accounts (por selectedClientId)
 ```
 
 ### usePeriod
@@ -446,11 +464,11 @@ const sorted = sortRows(rows, sort.column, sort.dir);
 
 - ✅ **Auth completo:** login page, middleware, sessão via cookies, logout
 - ✅ **RLS ativo** em todas as tabelas do schema `ads`
-- ✅ **AccountContext** resolve user → conta via `dashboard_users` + `gads_accounts`
+- ✅ **AccountContext** multi-client: dois effects, ClientSelector condicional na sidebar
 - ✅ Overview completo com dados reais
 - ✅ KPI cards, bar chart, donut chart, campaign table compact, optimization accordion
 - ✅ Filtro de período: 7d / 14d / 30d / Custom
-- ✅ Sidebar expansível com submenu Campaigns, info de conta, botão Sign out
+- ✅ Sidebar expansível com submenu Campaigns, ClientSelector (admin), Settings, Sign out
 - ✅ Campaigns: drill-down múltiplos accordions, ícones, sort clicável
 - ✅ Ad Groups: tabela flat com coluna Campaign, sort clicável
 - ✅ Keywords: hierarquia via `v_keyword_metrics`, sort clicável
@@ -458,17 +476,21 @@ const sorted = sortRows(rows, sort.column, sort.dir);
 - ✅ Insights: heatmap horário + auction insights
 - ✅ Optimization History: filtros status + categoria + período
 - ✅ Company Profile: 4 seções, parseia markdown, `content_md_en` com fallback
+- ✅ Settings: Personal Data (editable), Account (read-only), Change Password
 - ✅ Loading skeletons em todas as páginas
 - ✅ TypeScript sem erros
+- ✅ Dockerfile com `output: standalone`, ARG/ENV para vars Supabase, deploy no EasyPanel
 
 ---
 
 ## 11. O que falta / Próximos passos
 
-### Deploy (próximo passo)
-- [ ] **Dockerfile** para build e deploy no EasyPanel
-- [ ] Variáveis de ambiente no EasyPanel (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`)
-- [ ] Configurar domínio e HTTPS
+### Deploy
+- ✅ Dockerfile multi-stage com `output: standalone`
+- ✅ ARG/ENV para `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` no build stage
+- ✅ `.dockerignore` configurado
+- ✅ Repositório: `https://github.com/hub3ps/Hub3ps-ads-ops.git` (branch `main`)
+- [ ] Configurar domínio e HTTPS no EasyPanel
 
 ### Refinamentos pendentes
 - [ ] Variar descriptions entre os previews do Ad Copy (actualmente podem repetir)
