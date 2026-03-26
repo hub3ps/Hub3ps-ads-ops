@@ -44,14 +44,14 @@ export function PeriodSelector({ state, onPreset, onCustom, className }: PeriodS
   }
 
   return (
-    <div className={cn("flex flex-col items-end gap-2", className)}>
+    <div className={cn("flex flex-col items-stretch sm:items-end gap-2", className)}>
       <div className="flex items-center gap-1 bg-[#f5f6f8] rounded-lg p-0.5">
         {PRESETS.map((p) => (
           <button
             key={p.value}
             onClick={() => handlePreset(p.value)}
             className={cn(
-              "px-3 py-1.5 rounded-md text-[12px] font-medium transition-all",
+              "px-2.5 sm:px-3 py-1.5 rounded-md text-[12px] font-medium transition-all",
               !isCustom && state.mode === "preset" && state.days === p.value
                 ? "bg-white text-[#111827] shadow-sm"
                 : "text-[#6b7280] hover:text-[#374151]",
@@ -66,7 +66,7 @@ export function PeriodSelector({ state, onPreset, onCustom, className }: PeriodS
         <button
           onClick={handleCustomToggle}
           className={cn(
-            "px-3 py-1.5 rounded-md text-[12px] font-medium transition-all flex items-center gap-1.5",
+            "px-2.5 sm:px-3 py-1.5 rounded-md text-[12px] font-medium transition-all flex items-center gap-1.5",
             isCustom || showCustom
               ? "bg-white text-[#4285F4] shadow-sm"
               : "text-[#6b7280] hover:text-[#374151]",
@@ -77,13 +77,15 @@ export function PeriodSelector({ state, onPreset, onCustom, className }: PeriodS
             <path d="M1 5h10" stroke="currentColor" strokeWidth="1.2" />
             <path d="M4 1v2M8 1v2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
           </svg>
-          {isCustom ? `${state.start} → ${state.end}` : "Custom"}
+          {isCustom
+            ? <span className="max-w-[140px] sm:max-w-none truncate">{`${state.start} → ${state.end}`}</span>
+            : "Custom"}
         </button>
       </div>
 
       {/* Custom date inputs */}
       {showCustom && (
-        <div className="flex items-center gap-2 bg-white border border-[#e2e4ea] rounded-lg px-3 py-2.5 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2 bg-white border border-[#e2e4ea] rounded-lg px-3 py-2.5 shadow-sm">
           <div className="flex items-center gap-1.5">
             <label className="text-[11px] font-semibold text-[#9ca3af] uppercase tracking-wider">From</label>
             <input

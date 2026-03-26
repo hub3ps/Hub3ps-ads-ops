@@ -158,7 +158,7 @@ function PersonalSection() {
   return (
     <div className="space-y-6">
       {/* Avatar */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <div className="w-16 h-16 rounded-full bg-[#4285F4] flex items-center justify-center text-white text-[22px] font-semibold shrink-0">
           {initial}
         </div>
@@ -174,7 +174,7 @@ function PersonalSection() {
       </div>
 
       {/* Fields */}
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
           <label className={labelClass}>First Name</label>
           <input
@@ -306,9 +306,9 @@ function AccountSection() {
   return (
     <div className="divide-y divide-[#f3f4f6]">
       {rows.map(({ label, value }) => (
-        <div key={label} className="flex items-center justify-between py-3.5">
+        <div key={label} className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-3.5 gap-1 sm:gap-4">
           <span className="text-[13px] text-[#6b7280]">{label}</span>
-          <span className="text-[13px] font-medium text-[#111827]">{value}</span>
+          <span className="text-[13px] font-medium text-[#111827] sm:text-right">{value}</span>
         </div>
       ))}
     </div>
@@ -353,7 +353,7 @@ function PasswordSection() {
   };
 
   return (
-    <div className="space-y-4 max-w-sm">
+    <div className="space-y-4 w-full md:max-w-sm">
       <div>
         <label className={labelClass}>New password</label>
         <input
@@ -429,27 +429,29 @@ function SettingsContent() {
         <p className="text-[14px] text-[#9ca3af] mt-1">Manage your account</p>
       </div>
 
-      <div className="flex gap-6 items-start">
-        {/* Side menu */}
-        <nav className="w-48 shrink-0 bg-white border border-[#e2e4ea] rounded-xl overflow-hidden">
-          {menuItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => handleSectionChange(item.id)}
-              className={cn(
-                "w-full text-left px-4 py-3 text-[14px] font-medium transition-colors",
-                section === item.id
-                  ? "bg-[#eff6ff] text-[#4285F4]"
-                  : "text-[#374151] hover:bg-[#f5f6f8] hover:text-[#111827]",
-              )}
-            >
-              {item.label}
-            </button>
-          ))}
+      <div className="flex flex-col md:flex-row gap-6 items-start">
+        {/* Side menu — vertical on md+, equal-width tabs on mobile */}
+        <nav className="w-full md:w-48 md:shrink-0 bg-white border border-[#e2e4ea] rounded-xl overflow-hidden">
+          <div className="flex md:flex-col">
+            {menuItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => handleSectionChange(item.id)}
+                className={cn(
+                  "flex-1 md:flex-none text-center md:text-left px-3 md:px-4 py-3 text-[13px] md:text-[14px] font-medium transition-colors",
+                  section === item.id
+                    ? "bg-[#eff6ff] text-[#4285F4]"
+                    : "text-[#374151] hover:bg-[#f5f6f8] hover:text-[#111827]",
+                )}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
         </nav>
 
         {/* Content card */}
-        <div className="flex-1 bg-white border border-[#e2e4ea] rounded-xl p-7">
+        <div className="flex-1 w-full min-w-0 bg-white border border-[#e2e4ea] rounded-xl p-5 md:p-7">
           <div className="mb-5">
             <h2 className="text-[16px] font-semibold text-[#111827]">
               {sectionTitles[section].title}

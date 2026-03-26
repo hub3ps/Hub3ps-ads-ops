@@ -42,7 +42,7 @@ const SignOutIcon = () => (
 
 // ── Topbar ────────────────────────────────────────────────────────────────────
 
-export function Topbar() {
+export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
   const { accountName, displayName, loading } = useAccount();
   const pathname = usePathname();
   const router = useRouter();
@@ -94,8 +94,23 @@ export function Topbar() {
   return (
     <header className="bg-white border-b border-[#e2e4ea] sticky top-0 z-10">
       <div className="px-6 py-5 flex items-center justify-between">
+        {/* Hamburger — mobile only */}
+        <div className="flex items-center gap-2">
+          {onMenuClick && (
+            <button
+              onClick={onMenuClick}
+              className="p-1.5 rounded-lg hover:bg-[#f5f6f8] transition-colors md:hidden"
+              aria-label="Open menu"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M3 5H17M3 10H17M3 15H17" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </button>
+          )}
+        </div>
+
         {/* Greeting */}
-        <div>
+        <div className="flex-1 ml-1 md:ml-0">
           {loading ? (
             <div className="animate-pulse space-y-1.5">
               <div className="h-4 w-52 bg-[#f3f4f6] rounded" />
@@ -103,10 +118,10 @@ export function Topbar() {
             </div>
           ) : (
             <>
-              <h1 className="text-[17px] font-semibold text-[#111827]">
+              <h1 className="text-[15px] md:text-[17px] font-semibold text-[#111827]">
                 {greeting}, <span className="text-[#4285F4]">{name}</span> 👋
               </h1>
-              <p className="text-[13px] text-[#9ca3af] mt-0.5">
+              <p className="hidden sm:block text-[13px] text-[#9ca3af] mt-0.5">
                 {new Date().toLocaleDateString("en-NZ", {
                   weekday: "long",
                   year: "numeric",

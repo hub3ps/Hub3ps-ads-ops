@@ -43,7 +43,7 @@ export default function OverviewPage() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
         <div>
           <h2 className="text-[15px] font-semibold text-[#111827]">Performance Overview</h2>
           <p className="text-[12px] text-[#9ca3af] mt-0.5">{label}</p>
@@ -55,8 +55,8 @@ export default function OverviewPage() {
       {loading ? <KpiCardsSkeleton /> : <KpiCards data={daily} />}
 
       {/* Charts row */}
-      <div className="grid grid-cols-3 gap-5">
-        <div className="col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+        <div className="md:col-span-2">
           {loading ? (
             <ChartSkeleton height={200} />
           ) : (
@@ -73,8 +73,8 @@ export default function OverviewPage() {
       </div>
 
       {/* Optimizations + Campaign table */}
-      <div className="grid grid-cols-3 gap-5">
-        <div className="col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+        <div className="md:col-span-2">
           {loading ? (
             <TableSkeleton rows={6} cols={1} />
           ) : (

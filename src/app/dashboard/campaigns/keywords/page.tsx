@@ -126,7 +126,7 @@ function AdGroupAccordion({
 
       {open && (
         <div className="border-t border-[#eceef2] overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[650px]">
             <thead>
               <tr className="bg-[#f8faff]">
                 <SortTh label="Keyword"     col="keyword_text"  sort={sort} onSort={toggle} />
@@ -232,7 +232,7 @@ export default function CampaignKeywordsPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
         <div>
           <h2 className="text-[15px] font-semibold text-[#111827]">Keywords</h2>
           <p className="text-[12px] text-[#9ca3af] mt-0.5">

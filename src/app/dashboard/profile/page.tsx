@@ -19,13 +19,13 @@ function Section({
 }) {
   return (
     <div className="bg-white rounded-xl border border-[#e2e4ea] overflow-hidden">
-      <div className="flex items-center gap-3 px-6 py-4 border-b border-[#eceef2]">
+      <div className="flex items-center gap-3 px-4 py-4 md:px-6 border-b border-[#eceef2]">
         <div className="w-7 h-7 rounded-lg bg-[#eff6ff] flex items-center justify-center shrink-0 text-[#4285F4]">
           {icon}
         </div>
         <h3 className="text-[15px] font-semibold text-[#111827]">{title}</h3>
       </div>
-      <div className="px-6 py-5">{children}</div>
+      <div className="px-4 py-4 md:px-6 md:py-5">{children}</div>
     </div>
   );
 }
@@ -36,7 +36,7 @@ function InfoRow({ label, value, href }: { label: string; value: string; href?: 
   if (!value) return null;
   return (
     <div className="flex gap-4 py-2.5 border-b border-[#f3f4f6] last:border-0">
-      <span className="w-32 shrink-0 text-[12px] text-[#6b7280]">{label}</span>
+      <span className="w-28 md:w-32 shrink-0 text-[12px] text-[#6b7280]">{label}</span>
       {href ? (
         <a
           href={href}
@@ -163,7 +163,8 @@ function ServicesSection({ services }: { services: ProfileData["services"] }) {
 function AdGroupsTable({ rows }: { rows: AdGroupRow[] }) {
   if (!rows.length) return null;
   return (
-    <table className="w-full mt-3">
+    <div className="overflow-x-auto">
+    <table className="w-full min-w-[400px] mt-3">
       <thead>
         <tr className="bg-[#f8faff]">
           <th className="px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-wider text-[#9ca3af]">Ad Group</th>
@@ -187,6 +188,7 @@ function AdGroupsTable({ rows }: { rows: AdGroupRow[] }) {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 
@@ -300,7 +302,8 @@ function PerformanceTargetsSection({ contract }: { contract: ProfileData["contra
               CPA Targets
             </p>
             <div className="border border-[#e2e4ea] rounded-xl overflow-hidden">
-              <table className="w-full">
+              <div className="overflow-x-auto">
+              <table className="w-full min-w-[500px]">
                 <thead>
                   <tr className="bg-[#f8faff] border-b border-[#eceef2]">
                     <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-[#9ca3af]">Campaign</th>
@@ -324,6 +327,7 @@ function PerformanceTargetsSection({ contract }: { contract: ProfileData["contra
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         )}
@@ -335,7 +339,8 @@ function PerformanceTargetsSection({ contract }: { contract: ProfileData["contra
               Conversion Actions
             </p>
             <div className="border border-[#e2e4ea] rounded-xl overflow-hidden">
-              <table className="w-full">
+              <div className="overflow-x-auto">
+              <table className="w-full min-w-[500px]">
                 <thead>
                   <tr className="bg-[#f8faff] border-b border-[#eceef2]">
                     <th className="px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-[#9ca3af]">Action</th>
@@ -362,6 +367,7 @@ function PerformanceTargetsSection({ contract }: { contract: ProfileData["contra
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         )}

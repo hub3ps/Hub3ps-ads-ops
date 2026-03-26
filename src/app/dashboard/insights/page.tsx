@@ -108,7 +108,8 @@ export default function InsightsPage() {
           <div className="px-5 py-4 border-b border-[#eceef2]">
             <h3 className="text-[15px] font-semibold text-[#111827]">Auction Insights</h3>
           </div>
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[500px]">
             <thead>
               <tr className="border-b border-[#eceef2]">
                 {["Domain", "Impression Share", "Overlap Rate", "Outranking Share"].map((h) => (
@@ -138,6 +139,7 @@ export default function InsightsPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

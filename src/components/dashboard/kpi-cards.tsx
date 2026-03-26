@@ -81,23 +81,23 @@ export function KpiCards({ data }: KpiCardsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
       {kpis.map((kpi) => (
         <div
           key={kpi.label}
-          className="bg-white rounded-xl border border-[#e2e4ea] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] relative"
+          className="bg-white rounded-xl border border-[#e2e4ea] p-4 md:p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] relative"
         >
           <div
-            className="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center"
+            className="absolute top-3 right-3 md:top-4 md:right-4 w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center"
             style={{ background: kpi.bg }}
           >
             {kpi.icon}
           </div>
-          <p className="text-[11px] font-semibold text-[#9ca3af] tracking-widest uppercase mb-2">
+          <p className="text-[10px] md:text-[11px] font-semibold text-[#9ca3af] tracking-widest uppercase mb-2">
             {kpi.label}
           </p>
           <p
-            className="text-[28px] font-bold text-[#111827] tracking-tight tabular-nums"
+            className="text-[22px] md:text-[28px] font-bold text-[#111827] tracking-tight tabular-nums"
             style={{ letterSpacing: "-0.03em" }}
           >
             {kpi.value}

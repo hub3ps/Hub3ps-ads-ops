@@ -3,9 +3,9 @@ import { cn } from "@/lib/utils";
 
 export function KpiCardsSkeleton() {
   return (
-    <div className="grid grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="bg-white rounded-xl border border-[#e2e4ea] p-5 shadow-sm">
+        <div key={i} className="bg-white rounded-xl border border-[#e2e4ea] p-4 md:p-5 shadow-sm">
           <Skeleton className="h-3 w-20 mb-4" />
           <Skeleton className="h-7 w-28 mb-2" />
           <Skeleton className="h-3 w-16" />

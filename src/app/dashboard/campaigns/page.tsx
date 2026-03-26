@@ -81,7 +81,8 @@ function AdGroupsTable({ rows }: { rows: any[] }) {
   }
 
   return (
-    <table className="w-full">
+    <div className="overflow-x-auto">
+    <table className="w-full min-w-[600px]">
       <thead>
         <tr>
           <SmallSortTh label="Ad Group"    col="ad_group_name" sort={sort} onSort={toggle} />
@@ -121,6 +122,7 @@ function AdGroupsTable({ rows }: { rows: any[] }) {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 
@@ -168,7 +170,7 @@ export default function CampaignsPage() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
         <div>
           <h2 className="text-[15px] font-semibold text-[#111827]">Campaigns</h2>
           <p className="text-[12px] text-[#9ca3af] mt-0.5">{label}</p>
@@ -180,7 +182,8 @@ export default function CampaignsPage() {
         <TableSkeleton rows={6} cols={8} />
       ) : (
         <div className="bg-white rounded-xl border border-[#e2e4ea] shadow-sm overflow-hidden">
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[700px]">
             <thead>
               <tr className="border-b border-[#eceef2]">
                 <SortTh label="Campaign"    col="campaign_name" sort={campSort} onSort={campToggle} />
@@ -210,7 +213,7 @@ export default function CampaignsPage() {
                               <path d="M2 10L4.5 7L7 9L9.5 5.5L12 3" stroke="#4285F4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                           </div>
-                          <span className="text-[13px] font-medium text-[#111827] max-w-[180px] truncate">
+                          <span className="text-[13px] font-medium text-[#111827] max-w-[140px] md:max-w-[180px] truncate">
                             {c.campaign_name ?? "Unknown"}
                           </span>
                           <svg
@@ -251,6 +254,7 @@ export default function CampaignsPage() {
               })}
             </tbody>
           </table>
+          </div>
           {campaigns.length === 0 && (
             <p className="px-5 py-8 text-center text-[13px] text-[#9ca3af]">No campaign data for this period</p>
           )}

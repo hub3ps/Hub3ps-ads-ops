@@ -48,7 +48,7 @@ export default function AdGroupsPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
         <div>
           <h2 className="text-[15px] font-semibold text-[#111827]">Ad Groups</h2>
           <p className="text-[12px] text-[#9ca3af] mt-0.5">
@@ -62,7 +62,8 @@ export default function AdGroupsPage() {
         <TableSkeleton rows={8} cols={8} />
       ) : (
         <div className="bg-white rounded-xl border border-[#e2e4ea] shadow-sm overflow-hidden">
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[750px]">
             <thead>
               <tr className="border-b border-[#eceef2]">
                 <SortTh label="Ad Group"    col="ad_group_name"  sort={sort} onSort={toggle} />
@@ -105,6 +106,7 @@ export default function AdGroupsPage() {
               ))}
             </tbody>
           </table>
+          </div>
           {adGroups.length === 0 && (
             <p className="px-5 py-8 text-center text-[13px] text-[#9ca3af]">No ad group data for this period</p>
           )}

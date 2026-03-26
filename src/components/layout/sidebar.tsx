@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAccount } from "@/contexts/account-context";
 
@@ -38,7 +38,6 @@ const OptimizationsIcon = () => (
   </svg>
 );
 
-
 const ProfileIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
     <circle cx="8" cy="5.5" r="2.5" stroke="currentColor" strokeWidth="1.5" />
@@ -52,6 +51,12 @@ const ChevronIcon = ({ open }: { open: boolean }) => (
     className={cn("transition-transform duration-200 text-[#9ca3af]", open && "rotate-180")}
   >
     <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const CloseIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );
 
@@ -146,31 +151,40 @@ function ClientSelector() {
   );
 }
 
-// ── Sidebar ───────────────────────────────────────────────────────────────────
+// ── SidebarContent (shared between desktop and mobile) ────────────────────────
 
-export function Sidebar() {
+function SidebarContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
-  const { accountName, displayName, loading, clients, selectedClientId, setSelectedClientId } = useAccount();
+  const { accountName, displayName, loading, clients } = useAccount();
 
   const isCampaignsActive = pathname.startsWith("/dashboard/campaigns");
   const [campaignsOpen, setCampaignsOpen] = useState(isCampaignsActive);
 
   return (
-    <aside className="w-56 shrink-0 flex flex-col bg-white border-r border-[#e2e4ea] h-screen sticky top-0">
-
+    <>
       {/* Logo */}
       <div className="px-5 py-5 border-b border-[#e2e4ea]">
-        <div className="flex items-center gap-2.5">
-          <div className="flex gap-[3px] items-center">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#4285F4]" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#EA4335]" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#F9AB00]" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#34A853]" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="flex gap-[3px] items-center">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#4285F4]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#EA4335]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#F9AB00]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#34A853]" />
+            </div>
+            <div>
+              <p className="text-[14px] font-bold text-[#111827] leading-none">Ads Intelligence</p>
+              <p className="text-[10px] text-[#9ca3af] mt-0.5">by Hub3Ps</p>
+            </div>
           </div>
-          <div>
-            <p className="text-[14px] font-bold text-[#111827] leading-none">Ads Intelligence</p>
-            <p className="text-[10px] text-[#9ca3af] mt-0.5">by Hub3Ps</p>
-          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-[#f5f6f8] text-[#6b7280] hover:text-[#111827] transition-colors"
+            >
+              <CloseIcon />
+            </button>
+          )}
         </div>
       </div>
 
@@ -259,7 +273,54 @@ export function Sidebar() {
         <NavItem href="/dashboard/optimizations" label="Opt. History"    icon={<OptimizationsIcon />} />
         <NavItem href="/dashboard/profile"       label="Company Profile" icon={<ProfileIcon />} />
       </nav>
+    </>
+  );
+}
 
+// ── Desktop Sidebar ───────────────────────────────────────────────────────────
+
+export function Sidebar() {
+  return (
+    <aside className="w-56 shrink-0 flex flex-col bg-white border-r border-[#e2e4ea] h-screen sticky top-0">
+      <SidebarContent />
     </aside>
+  );
+}
+
+// ── Mobile Sidebar (drawer) ───────────────────────────────────────────────────
+
+export function MobileSidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const pathname = usePathname();
+  const prevPathname = useRef(pathname);
+
+  // Close on navigation
+  useEffect(() => {
+    if (prevPathname.current !== pathname) {
+      prevPathname.current = pathname;
+      onClose();
+    }
+  }, [pathname, onClose]);
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className={cn(
+          "fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity duration-300",
+          open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
+        )}
+        onClick={onClose}
+      />
+
+      {/* Drawer */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-[#e2e4ea] flex flex-col transform transition-transform duration-300 ease-in-out md:hidden",
+          open ? "translate-x-0" : "-translate-x-full",
+        )}
+      >
+        <SidebarContent onClose={onClose} />
+      </aside>
+    </>
   );
 }

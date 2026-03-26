@@ -45,7 +45,7 @@ export default function OptimizationsPage() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
         <div>
           <h2 className="text-[15px] font-semibold text-[#111827]">Optimizations</h2>
           <p className="text-[12px] text-[#9ca3af] mt-0.5">
