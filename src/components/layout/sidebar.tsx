@@ -83,7 +83,7 @@ function NavItem({
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors",
+        "flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-colors",
         isActive
           ? "bg-[#eff6ff] text-[#4285F4]"
           : "text-[#374151] hover:bg-[#f5f6f8] hover:text-[#111827]",
@@ -168,7 +168,7 @@ export function Sidebar() {
             <span className="w-2.5 h-2.5 rounded-full bg-[#34A853]" />
           </div>
           <div>
-            <p className="text-[13px] font-bold text-[#111827] leading-none">Ads Intelligence</p>
+            <p className="text-[14px] font-bold text-[#111827] leading-none">Ads Intelligence</p>
             <p className="text-[10px] text-[#9ca3af] mt-0.5">by Hub3Ps</p>
           </div>
         </div>
@@ -209,7 +209,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto">
         <NavItem href="/dashboard"           label="Overview"         icon={<OverviewIcon />} exact />
         <NavItem href="/dashboard/insights"  label="Insights"         icon={<InsightsIcon />} />
 
@@ -218,7 +218,7 @@ export function Sidebar() {
           <button
             onClick={() => setCampaignsOpen((v) => !v)}
             className={cn(
-              "w-full flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors",
+              "w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-colors",
               isCampaignsActive
                 ? "bg-[#eff6ff] text-[#4285F4]"
                 : "text-[#374151] hover:bg-[#f5f6f8] hover:text-[#111827]",
@@ -242,7 +242,7 @@ export function Sidebar() {
                     key={sub.href}
                     href={sub.href}
                     className={cn(
-                      "px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors",
+                      "px-3 py-2 rounded-lg text-[12.5px] font-medium transition-colors",
                       isActive
                         ? "text-[#4285F4] bg-[#eff6ff]"
                         : "text-[#6b7280] hover:text-[#374151] hover:bg-[#f5f6f8]",

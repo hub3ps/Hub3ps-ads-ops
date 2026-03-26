@@ -1,5 +1,10 @@
 "use client";
 
+// Design tokens (reference for all dashboard pages):
+// Page title: text-[22px] font-bold — Subtitle: text-[14px] mt-1
+// Section h2: text-[16px] font-semibold — Labels: text-[13px] text-[#6b7280] mb-2
+// Inputs: px-4 py-3 text-[14px] rounded-xl — Cards: p-7
+
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -35,9 +40,9 @@ const menuItems: { id: Section; label: string }[] = [
 // ── Shared input style ────────────────────────────────────────────────────────
 
 const inputClass =
-  "w-full px-3.5 py-2.5 rounded-lg border border-[#e2e4ea] text-[13px] text-[#111827] bg-white outline-none transition-colors focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/10 placeholder-[#d1d5db]";
+  "w-full px-4 py-3 rounded-xl border border-[#e2e4ea] text-[14px] text-[#111827] bg-white outline-none transition-colors focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/10 placeholder-[#d1d5db]";
 
-const labelClass = "block text-[12px] font-medium text-[#374151] mb-1.5";
+const labelClass = "block text-[13px] font-medium text-[#6b7280] mb-2";
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 
@@ -169,7 +174,7 @@ function PersonalSection() {
       </div>
 
       {/* Fields */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-5">
         <div>
           <label className={labelClass}>First Name</label>
           <input
@@ -419,9 +424,9 @@ function SettingsContent() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       {/* Page header */}
-      <div className="mb-6">
-        <h1 className="text-[18px] font-semibold text-[#111827]">Settings</h1>
-        <p className="text-[13px] text-[#9ca3af] mt-0.5">Manage your account</p>
+      <div className="mb-8">
+        <h1 className="text-[22px] font-bold text-[#111827]">Settings</h1>
+        <p className="text-[14px] text-[#9ca3af] mt-1">Manage your account</p>
       </div>
 
       <div className="flex gap-6 items-start">
@@ -432,7 +437,7 @@ function SettingsContent() {
               key={item.id}
               onClick={() => handleSectionChange(item.id)}
               className={cn(
-                "w-full text-left px-4 py-2.5 text-[13px] font-medium transition-colors",
+                "w-full text-left px-4 py-3 text-[14px] font-medium transition-colors",
                 section === item.id
                   ? "bg-[#eff6ff] text-[#4285F4]"
                   : "text-[#374151] hover:bg-[#f5f6f8] hover:text-[#111827]",
@@ -444,12 +449,12 @@ function SettingsContent() {
         </nav>
 
         {/* Content card */}
-        <div className="flex-1 bg-white border border-[#e2e4ea] rounded-xl p-6">
+        <div className="flex-1 bg-white border border-[#e2e4ea] rounded-xl p-7">
           <div className="mb-5">
-            <h2 className="text-[15px] font-semibold text-[#111827]">
+            <h2 className="text-[16px] font-semibold text-[#111827]">
               {sectionTitles[section].title}
             </h2>
-            <p className="text-[12px] text-[#9ca3af] mt-0.5">
+            <p className="text-[13px] text-[#9ca3af] mt-1">
               {sectionTitles[section].subtitle}
             </p>
           </div>

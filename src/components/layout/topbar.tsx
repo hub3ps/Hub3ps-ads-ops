@@ -93,7 +93,7 @@ export function Topbar() {
 
   return (
     <header className="bg-white border-b border-[#e2e4ea] sticky top-0 z-10">
-      <div className="px-6 py-4 flex items-center justify-between">
+      <div className="px-6 py-5 flex items-center justify-between">
         {/* Greeting */}
         <div>
           {loading ? (
@@ -103,10 +103,10 @@ export function Topbar() {
             </div>
           ) : (
             <>
-              <h1 className="text-[15px] font-semibold text-[#111827]">
+              <h1 className="text-[17px] font-semibold text-[#111827]">
                 {greeting}, <span className="text-[#4285F4]">{name}</span> 👋
               </h1>
-              <p className="text-[12px] text-[#9ca3af] mt-0.5">
+              <p className="text-[13px] text-[#9ca3af] mt-0.5">
                 {new Date().toLocaleDateString("en-NZ", {
                   weekday: "long",
                   year: "numeric",
