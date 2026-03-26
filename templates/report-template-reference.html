@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Naenae Dental Clinic — Optimization Report</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF8;
+    --surface: #FFFFFF;
+    --text: #1A1A1A;
+    --text-secondary: #5A5A5A;
+    --text-tertiary: #8A8A8A;
+    --accent: #2563EB;
+    --accent-light: #EFF6FF;
+    --green: #059669;
+    --green-light: #ECFDF5;
+    --amber: #D97706;
+    --amber-light: #FFFBEB;
+    --red: #DC2626;
+    --red-light: #FEF2F2;
+    --border: #E8E8E4;
+    --border-light: #F0F0EC;
+    --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 2px solid var(--text);
+  }
+  .header-left h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  .header-left .subtitle {
+    font-size: 15px;
+    color: var(--text-secondary);
+    font-weight: 400;
+  }
+  .header-right {
+    text-align: right;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+  }
+  .header-right strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .section {
+    margin-bottom: 48px;
+    break-inside: avoid;
+  }
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    font-weight: 400;
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+  }
+  .section-text {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.75;
+    max-width: 680px;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+    margin-bottom: 32px;
+  }
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 16px;
+    box-shadow: var(--shadow);
+    break-inside: avoid;
+  }
+  .summary-card .label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+  .summary-card .value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--text);
+  }
+  .summary-card .detail {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+  }
+
+  .opt-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .opt-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    box-shadow: var(--shadow);
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    break-inside: avoid;
+  }
+  .opt-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .opt-icon.negative { background: var(--red-light); color: var(--red); }
+  .opt-icon.keyword { background: var(--accent-light); color: var(--accent); }
+  .opt-icon.ad { background: var(--green-light); color: var(--green); }
+  .opt-icon.schedule { background: var(--amber-light); color: var(--amber); }
+  .opt-icon.structure { background: #F3F4F6; color: #4B5563; }
+
+  .opt-content { flex: 1; }
+  .opt-content .title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .opt-content .description {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+  .opt-meta {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+  }
+  .opt-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 100px;
+    letter-spacing: 0.02em;
+  }
+  .opt-tag.campaign {
+    background: #F0F0EC;
+    color: var(--text-secondary);
+  }
+  .opt-tag.done {
+    background: var(--green-light);
+    color: var(--green);
+  }
+
+  .monitor-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .monitor-item {
+    background: var(--amber-light);
+    border: 1px solid #FDE68A;
+    border-radius: 10px;
+    padding: 18px 24px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    break-inside: avoid;
+  }
+  .monitor-item .opt-content .title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--amber);
+  }
+  .monitor-item .opt-content .description {
+    font-size: 14px;
+    color: #92400E;
+  }
+
+  .perf-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 14px;
+  }
+  .perf-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    padding: 10px 16px;
+    border-bottom: 2px solid var(--border);
+  }
+  .perf-table th:not(:first-child) { text-align: right; }
+  .perf-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text);
+  }
+  .perf-table td:not(:first-child) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .perf-table td:first-child {
+    font-weight: 600;
+  }
+  .perf-table tr:last-child td { border-bottom: none; }
+  .perf-table .total td {
+    font-weight: 600;
+    border-top: 2px solid var(--text);
+    border-bottom: none;
+  }
+
+  .table-wrapper {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    break-inside: avoid;
+  }
+
+  .next-list {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .next-item {
+    font-size: 15px;
+    color: var(--text-secondary);
+    padding-left: 20px;
+    position: relative;
+    line-height: 1.65;
+    break-inside: avoid;
+  }
+  .next-item::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .footer {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .callout {
+    background: var(--accent-light);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    border-radius: 0 8px 8px 0;
+    margin-top: 16px;
+    break-inside: avoid;
+  }
+  .callout p {
+    font-size: 14px;
+    color: #1E40AF;
+    line-height: 1.65;
+  }
+
+  .scope-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-top: 16px;
+    break-inside: avoid;
+  }
+  .scope-box .scope-group-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: 10px;
+  }
+  .scope-services {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .scope-tag {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 100px;
+    line-height: 1.4;
+    background: var(--green-light);
+    color: var(--green);
+    border: 1px solid #A7F3D0;
+  }
+  .scope-note {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-top: 14px;
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  @media (max-width: 640px) {
+    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .header { flex-direction: column; gap: 16px; }
+    .header-right { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>Naenae Dental Clinic</h1>
+      <div class="subtitle">Google Ads Optimization Report</div>
+    </div>
+    <div class="header-right">
+      <strong>Report Period</strong><br>
+      10 February – 20 February 2026<br>
+      <strong>Generated</strong><br>
+      22 February 2026
+    </div>
+  </div>
+
+  <!-- Executive Summary -->
+  <div class="section">
+    <div class="section-label">Executive Summary</div>
+    <div class="section-text">
+      This period we performed a comprehensive audit of your Google Ads campaigns. We identified and fixed <strong>governance violations</strong> (ads and keywords referencing services not included in the current campaigns), 
+      blocked <strong>irrelevant search terms</strong> that were wasting budget, optimised the <strong>ad schedule</strong>, and cleaned up the campaign structure. 
+      In total, <strong>9 optimizations were implemented</strong> and 2 items are being monitored.
+    </div>
+    <div class="callout">
+      <p><strong>Why this matters:</strong> These changes ensure your ad budget is spent only on people actually looking for the services being advertised by Naenae Dental, in the right areas, at the right times. Every dollar saved from irrelevant clicks goes towards reaching real potential patients.</p>
+    </div>
+  </div>
+
+  <!-- Scope -->
+  <div class="section">
+    <div class="section-label">Scope of This Report</div>
+    <div class="section-title">Services Currently Being Advertised</div>
+    <div class="scope-box">
+      <div class="scope-group-title">Included in Google Ads campaigns</div>
+      <div class="scope-services">
+        <span class="scope-tag">Emergency & Urgent Dentistry</span>
+        <span class="scope-tag">General Dentistry</span>
+        <span class="scope-tag">Preventive Dentistry & Hygiene</span>
+        <span class="scope-tag">Dental Surgery</span>
+      </div>
+      <div class="scope-note">
+        The clinic offers additional services beyond those listed above. However, the Google Ads campaigns are focused exclusively on these services, as per the group's advertising strategy.
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance Snapshot -->
+  <div class="section">
+    <div class="section-label">Performance Snapshot</div>
+    <div class="section-title">Campaign Performance (10–20 Feb)</div>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="label">Total Spend</div>
+        <div class="value">$2,153</div>
+        <div class="detail">NZD</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Conversions</div>
+        <div class="value">243</div>
+        <div class="detail">tracked actions</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Cost/Conv.</div>
+        <div class="value">$8.86</div>
+        <div class="detail">avg. across campaigns</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Clicks</div>
+        <div class="value">721</div>
+        <div class="detail">to website</div>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="perf-table">
+        <thead>
+          <tr>
+            <th>Campaign</th>
+            <th>Spend</th>
+            <th>Conversions</th>
+            <th>Cost/Conv.</th>
+            <th>Clicks</th>
+            <th>CTR</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>NaeNae [PSEO]</td>
+            <td>$1,362.07</td>
+            <td>220</td>
+            <td>$6.18</td>
+            <td>646</td>
+            <td>14.7%</td>
+          </tr>
+          <tr>
+            <td>Upper Hutt Preventive</td>
+            <td>$791.16</td>
+            <td>23</td>
+            <td>$34.49</td>
+            <td>75</td>
+            <td>9.6%</td>
+          </tr>
+          <tr class="total">
+            <td>Total</td>
+            <td>$2,153.23</td>
+            <td>243</td>
+            <td>$8.86</td>
+            <td>721</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="section-text" style="margin-top: 14px; font-size: 13px; color: var(--text-tertiary);">
+      Note: The Upper Hutt Preventive campaign is recently launched and in its early optimization phase. The higher cost per conversion is expected at this stage and is the main focus of our current optimizations.
+    </div>
+  </div>
+
+  <!-- What We Did -->
+  <div class="section">
+    <div class="section-label">What We Did</div>
+    <div class="section-title">Optimizations Implemented</div>
+    <div class="section-text">
+      Below is a detailed summary of every optimization made to your campaigns this period. Each change was carefully analysed before being implemented.
+    </div>
+
+    <div class="opt-list">
+      <!-- 1. Governance Keywords -->
+      <div class="opt-item">
+        <div class="opt-icon keyword">⌧</div>
+        <div class="opt-content">
+          <div class="title">Paused keywords outside campaign scope</div>
+          <div class="description">
+            We found two keywords — <em>"orthodontist clinic"</em> and <em>"denture clinic"</em> — that were attracting people looking for services not included in the current campaigns (orthodontics and dentures are advertised by other clinics in the group). 
+            These were paused to prevent paying for clicks that can't convert into appointments for the advertised services.
+          </div>
+          <div class="opt-meta">
+            <span class="opt-tag campaign">NaeNae [PSEO]</span>
+            <span class="opt-tag done">✓ Done</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. RSA Headlines -->
+      <div class="opt-item">
+        <div class="opt-icon ad">✎</div>
+        <div class="opt-content">
+          <div class="title">Removed out-of-scope ad headlines</div>
+          <div class="description">
+            Two headlines in your main ad were referencing <em>"all on x clinic"</em> and <em>"dental implants"</em> — services not included in the current campaigns (implants are advertised by another clinic in the group). 
+            These were removed to ensure your ads only promote the services included in the current campaigns.
+          </div>
+          <div class="opt-meta">
+            <span class="opt-tag campaign">NaeNae [PSEO]</span>
+            <span class="opt-tag done">✓ Done</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Emergency Negatives -->
+      <div class="opt-item">
+        <div class="opt-icon negative">✕</div>
+        <div class="opt-content">
+          <div class="title">Blocked 12 emergency-related search terms</div>
+          <div class="description">
+            The Preventive campaign was receiving clicks from people searching for <em>emergency services</em> (e.g., "urgent dentist", "toothache", "broken tooth"). 
+            Since this campaign focuses on routine and preventive care, we blocked 12 emergency-related terms to keep the budget focused on the right audience.
+          </div>
+          <div class="opt-meta">
+            <span class="opt-tag campaign">Upper Hutt Preventive</span>
+            <span class="opt-tag done">✓ Done</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Competitor List -->
+      <div class="opt-item">
+        <div class="opt-icon negative">✕</div>
+        <div class="opt-content">
+          <div class="title">Created competitor blocking list</div>
+          <div class="description">
+            We set up a shared list of competitor names — <em>Art of Dentistry, Gentle Dental, Bee Healthy, Flosii, Lumino</em> — and applied it to both campaigns. 
+            This prevents your ads from showing when people are specifically searching for other dental clinics, saving budget for patients who are open to choosing a provider.
+          </div>
+          <div class="opt-meta">
+            <span class="opt-tag campaign">Both campaigns</span>
+            <span class="opt-tag done">✓ Done</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Irrelevant Negatives -->
+      <div class="opt-item">
+        <div class="opt-icon negative">✕</div>
+        <div class="opt-content">
+          <div class="title">Blocked irrelevant search terms</div>
+          <div class="description">
+            Searches for <em>"veneers"</em>, <em>"crown"</em>, <em>"dental hygienists"</em>, and <em>"hutt city"</em> were triggering ads on the Preventive campaign without converting. 
+            These terms were added as negatives to focus the budget on relevant searches.
+          </div>
+          <div class="opt-meta">
+            <span class="opt-tag campaign">Upper Hutt Preventive</span>
+            <span class="opt-tag done">✓ Done</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Default Negatives -->
+      <div class="opt-item">
+        <div class="opt-icon negative">✕</div>
+        <div class="opt-content">
+          <div class="title">Applied standard negative keywords list (151 terms)</div>
+          <div class="description">
+            We applied our comprehensive negative keywords list to the Preventive campaign. This list contains 151 commonly irrelevant terms for dental clinics 
+            (such as "jobs", "salary", "study", "free", etc.) and prevents your ads from showing for searches that will never result in a patient booking.
+          </div>
+          <div class="opt-meta">
+            <span class="opt-tag campaign">Upper Hutt Preventive</span>
+            <span class="opt-tag done">✓ Done</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Ad Schedule -->
+      <div class="opt-item">
+        <div class="opt-icon schedule">◷</div>
+        <div class="opt-content">
+          <div class="title">Optimised ad schedule</div>
+          <div class="description">
+            We paused ad delivery between <strong>midnight and 5 AM</strong> for the Preventive campaign. 
+            Data showed that clicks during these hours were not converting into appointments. This redirects that budget into daytime hours when patients are more likely to book.
+          </div>
+          <div class="opt-meta">
+            <span class="opt-tag campaign">Upper Hutt Preventive</span>
+            <span class="opt-tag done">✓ Done</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. Consolidation -->
+      <div class="opt-item">
+        <div class="opt-icon structure">⚙</div>
+        <div class="opt-content">
+          <div class="title">Consolidated negative keywords structure</div>
+          <div class="description">
+            Emergency-related negatives were scattered across individual ad groups. We consolidated them to the campaign level so they apply uniformly, 
+            making management cleaner and ensuring no ad group accidentally receives irrelevant emergency traffic.
+          </div>
+          <div class="opt-meta">
+            <span class="opt-tag campaign">Upper Hutt Preventive</span>
+            <span class="opt-tag done">✓ Done</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. Cleanup -->
+      <div class="opt-item">
+        <div class="opt-icon structure">⚙</div>
+        <div class="opt-content">
+          <div class="title">Removed unused ad groups</div>
+          <div class="description">
+            Three legacy ad groups — <em>Restorative Dentistry</em>, <em>Dental Bridges</em>, and <em>Dentures</em> — had been sitting inactive with no spend. 
+            We removed them to keep the campaign structure clean and focused.
+          </div>
+          <div class="opt-meta">
+            <span class="opt-tag campaign">Upper Hutt Preventive</span>
+            <span class="opt-tag done">✓ Done</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monitoring -->
+  <div class="section">
+    <div class="section-label">Under Observation</div>
+    <div class="section-title">Items Being Monitored</div>
+    <div class="section-text">
+      These items were flagged during the analysis but require more data before we make changes. We're watching them closely.
+    </div>
+
+    <div class="monitor-list">
+      <div class="monitor-item">
+        <div class="opt-icon" style="background: var(--amber-light); color: var(--amber);">◉</div>
+        <div class="opt-content">
+          <div class="title">Emergency Dentist — Cost per conversion above target</div>
+          <div class="description">
+            The Emergency Dentist ad group has a cost per conversion of $21.35, above the $15.00 target. 
+            We're monitoring this over the next 2 weeks to determine if it needs bid adjustments or structural changes.
+          </div>
+        </div>
+      </div>
+      <div class="monitor-item">
+        <div class="opt-icon" style="background: var(--amber-light); color: var(--amber);">◉</div>
+        <div class="opt-content">
+          <div class="title">"Saturday" search term — needs more data</div>
+          <div class="description">
+            The search term "saturday" is triggering ads but has borderline performance. 
+            Rather than blocking it prematurely (patients may be looking for Saturday opening hours), we'll observe for 15 more days before deciding.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Next Steps -->
+  <div class="section">
+    <div class="section-label">Looking Ahead</div>
+    <div class="section-title">What's Next</div>
+    <div class="next-list">
+      <div class="next-item">Continue monitoring the Upper Hutt Preventive campaign as it gathers data — expect cost per conversion to improve as the optimizations above take effect.</div>
+      <div class="next-item">Review the Emergency Dentist ad group performance after the monitoring period and adjust bids if needed.</div>
+      <div class="next-item">Analyse new search term data next week to identify additional irrelevant terms to block.</div>
+      <div class="next-item">Evaluate ad copy performance (headlines and descriptions) and test improvements where ad strength is below "Good".</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div>Naenae Dental Clinic — Google Ads Management</div>
+    <div>Report #1 · February 2026</div>
+  </div>
+
+</div>
+</body>
+</html>
