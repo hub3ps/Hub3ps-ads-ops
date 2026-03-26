@@ -39,6 +39,13 @@ const OptimizationsIcon = () => (
   </svg>
 );
 
+const SettingsIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M8 1.5V3M8 13V14.5M1.5 8H3M13 8H14.5M3.1 3.1L4.2 4.2M11.8 11.8L12.9 12.9M3.1 12.9L4.2 11.8M11.8 4.2L12.9 3.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
+
 const ProfileIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
     <circle cx="8" cy="5.5" r="2.5" stroke="currentColor" strokeWidth="1.5" />
@@ -266,6 +273,7 @@ export function Sidebar() {
 
         <NavItem href="/dashboard/optimizations" label="Opt. History"    icon={<OptimizationsIcon />} />
         <NavItem href="/dashboard/profile"       label="Company Profile" icon={<ProfileIcon />} />
+        <NavItem href="/dashboard/settings"      label="Settings"        icon={<SettingsIcon />} />
       </nav>
 
       {/* Footer — logout */}
