@@ -9,7 +9,9 @@
       "Read(//usr/**)",
       "Bash(echo $PATH)",
       "Bash(export PATH=\"/opt/homebrew/bin:$PATH\")",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "mcp__claude_ai_Supabase__execute_sql"
     ]
   }
 }

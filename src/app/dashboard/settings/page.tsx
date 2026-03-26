@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -389,7 +390,25 @@ function PasswordSection() {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
-  const [section, setSection] = useState<Section>("personal");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const tabParam = searchParams.get("tab") as Section | null;
+  const validSections: Section[] = ["personal", "account", "password"];
+  const [section, setSection] = useState<Section>(
+    tabParam && validSections.includes(tabParam) ? tabParam : "personal",
+  );
+
+  // Sync state when URL param changes (e.g. navigating from topbar dropdown)
+  useEffect(() => {
+    const tab = searchParams.get("tab") as Section | null;
+    if (tab && validSections.includes(tab)) setSection(tab);
+  }, [searchParams]);
+
+  const handleSectionChange = (id: Section) => {
+    setSection(id);
+    router.replace(`/dashboard/settings?tab=${id}`);
+  };
 
   const sectionTitles: Record<Section, { title: string; subtitle: string }> = {
     personal: { title: "Personal Data", subtitle: "Update your name, contact and profile info" },
@@ -411,7 +430,7 @@ export default function SettingsPage() {
           {menuItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setSection(item.id)}
+              onClick={() => handleSectionChange(item.id)}
               className={cn(
                 "w-full text-left px-4 py-2.5 text-[13px] font-medium transition-colors",
                 section === item.id

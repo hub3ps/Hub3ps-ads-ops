@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAccount } from "@/contexts/account-context";
-import { createClient } from "@/lib/supabase/client";
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -39,12 +38,6 @@ const OptimizationsIcon = () => (
   </svg>
 );
 
-const SettingsIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-    <circle cx="8" cy="8" r="2.5" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M8 1.5V3M8 13V14.5M1.5 8H3M13 8H14.5M3.1 3.1L4.2 4.2M11.8 11.8L12.9 12.9M3.1 12.9L4.2 11.8M11.8 4.2L12.9 3.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
 
 const ProfileIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -157,18 +150,10 @@ function ClientSelector() {
 
 export function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { accountName, displayName, loading, clients, selectedClientId, setSelectedClientId } = useAccount();
 
   const isCampaignsActive = pathname.startsWith("/dashboard/campaigns");
   const [campaignsOpen, setCampaignsOpen] = useState(isCampaignsActive);
-
-  const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
-  };
 
   return (
     <aside className="w-56 shrink-0 flex flex-col bg-white border-r border-[#e2e4ea] h-screen sticky top-0">
@@ -273,23 +258,8 @@ export function Sidebar() {
 
         <NavItem href="/dashboard/optimizations" label="Opt. History"    icon={<OptimizationsIcon />} />
         <NavItem href="/dashboard/profile"       label="Company Profile" icon={<ProfileIcon />} />
-        <NavItem href="/dashboard/settings"      label="Settings"        icon={<SettingsIcon />} />
       </nav>
 
-      {/* Footer — logout */}
-      <div className="px-4 py-4 border-t border-[#e2e4ea]">
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-[#6b7280] hover:bg-[#fef2f2] hover:text-[#EA4335] transition-colors"
-        >
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" className="shrink-0">
-            <path d="M6 2H3C2.45 2 2 2.45 2 3V12C2 12.55 2.45 13 3 13H6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-            <path d="M10 10L13 7.5L10 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M13 7.5H6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-          </svg>
-          Sign out
-        </button>
-      </div>
     </aside>
   );
 }
