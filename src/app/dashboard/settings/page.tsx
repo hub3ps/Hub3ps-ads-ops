@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -389,7 +389,7 @@ function PasswordSection() {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export default function SettingsPage() {
+function SettingsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -461,5 +461,23 @@ export default function SettingsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 max-w-5xl mx-auto">
+          <div className="animate-pulse space-y-4">
+            <div className="h-5 w-32 bg-[#f3f4f6] rounded" />
+            <div className="h-3 w-48 bg-[#f3f4f6] rounded" />
+            <div className="h-64 bg-[#f3f4f6] rounded-xl mt-4" />
+          </div>
+        </div>
+      }
+    >
+      <SettingsContent />
+    </Suspense>
   );
 }
