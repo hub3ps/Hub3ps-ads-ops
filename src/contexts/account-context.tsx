@@ -13,6 +13,7 @@ interface AccountContextValue {
   accountName: string;
   displayName: string;
   firstName: string;
+  avatarUrl: string;
   loading: boolean;
   // Multi-client support (populated when user has >1 client)
   clients: ClientOption[];
@@ -27,6 +28,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   const [accountName, setAccountName]       = useState("");
   const [displayName, setDisplayName]       = useState("");
   const [firstName, setFirstName]           = useState("");
+  const [avatarUrl, setAvatarUrl]           = useState("");
   const [loading, setLoading]               = useState(true);
   const [clients, setClients]               = useState<ClientOption[]>([]);
   const [selectedClientId, setSelectedClientId] = useState("");
@@ -43,13 +45,14 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       const { data: userRows } = await supabase
         .schema("ads")
         .from("dashboard_users")
-        .select("client_id, display_name, first_name")
+        .select("client_id, display_name, first_name, avatar_url")
         .eq("auth_user_id", user.id);
 
       if (!userRows?.length) { setLoading(false); return; }
 
       setDisplayName(userRows[0].display_name ?? "");
       setFirstName(userRows[0].first_name ?? "");
+      setAvatarUrl(userRows[0].avatar_url ?? "");
 
       const clientIds = userRows.map((r) => r.client_id as string);
 
@@ -109,6 +112,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
         accountName,
         displayName,
         firstName,
+        avatarUrl,
         loading,
         clients,
         selectedClientId,

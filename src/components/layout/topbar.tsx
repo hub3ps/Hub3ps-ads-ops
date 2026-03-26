@@ -43,7 +43,7 @@ const SignOutIcon = () => (
 // ── Topbar ────────────────────────────────────────────────────────────────────
 
 export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
-  const { accountName, displayName, firstName, loading } = useAccount();
+  const { accountName, displayName, firstName, avatarUrl, loading } = useAccount();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -146,9 +146,13 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setOpen((v) => !v)}
-            className="w-8 h-8 rounded-full bg-[#4285F4] flex items-center justify-center text-white text-[12px] font-semibold shrink-0 hover:bg-[#3574e2] transition-colors"
+            className="w-8 h-8 rounded-full bg-[#4285F4] flex items-center justify-center text-white text-[12px] font-semibold shrink-0 hover:bg-[#3574e2] transition-colors overflow-hidden"
           >
-            {loading ? "" : initial}
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+              loading ? "" : initial
+            )}
           </button>
 
           {open && (
@@ -158,8 +162,12 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
             >
               {/* Header */}
               <div className="px-4 py-3 border-b border-[#e2e4ea] flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#4285F4] flex items-center justify-center text-white text-[13px] font-semibold shrink-0">
-                  {initial}
+                <div className="w-9 h-9 rounded-full bg-[#4285F4] flex items-center justify-center text-white text-[13px] font-semibold shrink-0 overflow-hidden">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    initial
+                  )}
                 </div>
                 <div className="min-w-0">
                   <p className="text-[13px] font-semibold text-[#111827] truncate">{avatarName}</p>

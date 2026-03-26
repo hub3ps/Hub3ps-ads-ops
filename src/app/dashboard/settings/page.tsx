@@ -83,6 +83,9 @@ function PersonalSection() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -94,11 +97,14 @@ function PersonalSection() {
       const { data } = await supabase
         .schema("ads")
         .from("dashboard_users")
-        .select("first_name, last_name, job_title, phone, country, display_name")
+        .select("first_name, last_name, job_title, phone, country, display_name, avatar_url")
         .eq("auth_user_id", user.id)
         .single();
 
-      if (data) setProfile(data);
+      if (data) {
+        setProfile(data);
+        setAvatarUrl(data.avatar_url ?? null);
+      }
       setLoading(false);
     }
     load();
@@ -109,11 +115,40 @@ function PersonalSection() {
     setTimeout(() => setToast(null), 4000);
   };
 
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      showToast("Image must be under 2MB.", "error");
+      return;
+    }
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
   const handleSave = async () => {
     setSaving(true);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) { setSaving(false); return; }
+
+    let newAvatarUrl = avatarUrl;
+
+    if (avatarFile) {
+      const filePath = `${user.id}/avatar`;
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, avatarFile, { upsert: true, contentType: avatarFile.type });
+
+      if (uploadError) {
+        showToast("Failed to upload photo. Please try again.", "error");
+        setSaving(false);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      newAvatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+    }
 
     const { error } = await supabase
       .schema("ads")
@@ -124,6 +159,7 @@ function PersonalSection() {
         job_title: profile.job_title,
         phone: profile.phone,
         country: profile.country,
+        avatar_url: newAvatarUrl,
       })
       .eq("auth_user_id", user.id);
 
@@ -131,6 +167,9 @@ function PersonalSection() {
     if (error) {
       showToast("Failed to save changes. Please try again.", "error");
     } else {
+      setAvatarUrl(newAvatarUrl);
+      setAvatarFile(null);
+      setAvatarPreview(null);
       showToast("Changes saved successfully.", "success");
     }
   };
@@ -159,17 +198,34 @@ function PersonalSection() {
     <div className="space-y-6">
       {/* Avatar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="w-16 h-16 rounded-full bg-[#4285F4] flex items-center justify-center text-white text-[22px] font-semibold shrink-0">
-          {initial}
+        <div className="w-16 h-16 rounded-full bg-[#4285F4] flex items-center justify-center text-white text-[22px] font-semibold shrink-0 overflow-hidden">
+          {avatarPreview || avatarUrl ? (
+            <img src={avatarPreview || avatarUrl || ""} alt="Avatar" className="w-full h-full object-cover" />
+          ) : (
+            initial
+          )}
         </div>
         <div>
-          <button
-            disabled
-            className="px-3.5 py-2 rounded-lg border border-[#e2e4ea] text-[12px] font-medium text-[#9ca3af] cursor-not-allowed bg-[#f9fafb]"
-          >
-            Change photo
-          </button>
-          <p className="text-[11px] text-[#9ca3af] mt-1">Coming soon</p>
+          <div className="flex items-center gap-2">
+            <label className="px-3.5 py-2 rounded-lg border border-[#e2e4ea] text-[12px] font-medium text-[#374151] cursor-pointer hover:bg-[#f5f6f8] transition-colors inline-block">
+              Change photo
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleAvatarSelect}
+                className="hidden"
+              />
+            </label>
+            {(avatarPreview || avatarUrl) && (
+              <button
+                onClick={() => { setAvatarFile(null); setAvatarPreview(null); setAvatarUrl(null); }}
+                className="px-3.5 py-2 rounded-lg border border-[#e2e4ea] text-[12px] font-medium text-[#6b7280] hover:bg-[#fef2f2] hover:text-[#EA4335] transition-colors"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+          <p className="text-[11px] text-[#9ca3af] mt-1">JPG, PNG or WebP. Max 2MB.</p>
         </div>
       </div>
 
