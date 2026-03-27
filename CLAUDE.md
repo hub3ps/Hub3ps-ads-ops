@@ -1,7 +1,7 @@
 # Ads AI Dashboard — Project Reference
 
 > Referência completa para conversas futuras e contexto após compactação.
-> **Última atualização:** 2026-03-26 (Sprint 7 — Avatar dropdown + refinamento tipográfico)
+> **Última atualização:** 2026-03-27 (Sprint 8 — Responsividade mobile + avatar upload + topbar refactor)
 
 ---
 
@@ -281,8 +281,8 @@ src/
 ├── components/
 │   ├── ui/                                 # shadcn auto-generated
 │   ├── layout/
-│   │   ├── sidebar.tsx                     # Sidebar + ClientSelector (condicional) + Settings + logout
-│   │   ├── topbar.tsx                      # Greeting com accountName do contexto + skeleton
+│   │   ├── sidebar.tsx                     # Sidebar (desktop) + MobileSidebar (drawer) + SidebarContent (shared)
+│   │   ├── topbar.tsx                      # Greeting firstName + clínica + data; hamburger mobile; avatar com foto
 │   │   └── footer.tsx
 │   ├── dashboard/
 │   │   ├── kpi-cards.tsx                   # 4 KPIs: Impressions, Clicks, Spend, Conversions
@@ -296,6 +296,9 @@ src/
 │       ├── platform-badge.tsx
 │       ├── period-selector.tsx             # 7d/14d/30d + Custom date range picker
 │       └── loading-skeleton.tsx
+│
+├── app/dashboard/
+│   └── shell.tsx                           # DashboardShell — client wrapper com sidebarOpen state
 │
 ├── contexts/
 │   └── account-context.tsx                 # AccountProvider — busca user → dashboard_users → gads_accounts
@@ -339,9 +342,9 @@ src/
 - Layout: OptimizationList (col-span-2) + CampaignTable compact (col-span-1)
 
 ### Campaigns — Performance (`/dashboard/campaigns`)
-- Tabela completa (Campaign, Status, Impressions, Clicks, CTR, Spend, Conv., CPA)
-- Ícone de trend line azul por campanha; ícone de grid azul por ad group
-- Drill-down: clicar numa campanha expande sub-tabela de ad groups
+- **Mobile (`md:hidden`):** `MobileCampaignCard` — métricas primárias (Spend/Conv./CPA) em grid 3 col, métricas secundárias (imp·clicks·CTR) em linha, botão "View ad groups" expande mini-cards por ad group
+- **Desktop (`hidden md:block`):** tabela completa (Campaign, Status, Impressions, Clicks, CTR, Spend, Conv., CPA)
+- Drill-down: mesmos `expanded`, `toggleCampaign`, `adGroups` usados por ambos os layouts
 - Múltiplas campanhas podem estar abertas simultaneamente (`Set<number>`)
 - Sort clicável em todas as colunas (campanhas: default spend; ad groups: default spend)
 
@@ -394,13 +397,14 @@ src/
 ### Settings (`/dashboard/settings`)
 - Lê `?tab=` da URL via `useSearchParams` (wrapped em `<Suspense>` para o build de produção)
 - `router.replace(/dashboard/settings?tab=${id})` ao navegar entre seções
-- Menu lateral interno com 3 seções: Personal Data | Account | Change Password
-- **Personal Data** — grid 2 colunas: First Name, Last Name, Job Title, Country, Phone, Email (read-only)
-  - Busca/salva em `dashboard_users` via `auth_user_id`; campos: `first_name`, `last_name`, `job_title`, `phone`, `country`
-  - Avatar com inicial do nome; botão "Change photo" desabilitado (futuro)
-  - Toast inline de sucesso/erro
+- Mobile: 3 tabs em `flex` (distribuição igual, `flex-1`); Desktop: menu vertical lateral `w-48`
+- **Personal Data** — grid `grid-cols-1 sm:grid-cols-2`: First Name, Last Name, Job Title, Country, Phone, Email (read-only)
+  - Busca/salva em `dashboard_users` via `auth_user_id`; campos: `first_name`, `last_name`, `job_title`, `phone`, `country`, `avatar_url`
+  - **Avatar upload:** file picker (JPG/PNG/WebP, max 2MB), preview imediato, upsert para `avatars/{user_id}/avatar` no Supabase Storage, URL pública com cache-buster salva em `avatar_url`
+  - Botão "Remove" limpa avatar; Toast inline de sucesso/erro
 - **Account** — read-only: clínicas vinculadas, role, member since, plan "Professional" (hardcoded)
   - Query: `dashboard_users.select("role, created_at, clients:client_id(name)")`
+  - Mobile: rows empilhadas (`flex-col sm:flex-row`)
 - **Change Password** — validação min 8 chars + confirmação; `supabase.auth.updateUser({ password })`
   - Toast inline de sucesso/erro
 
@@ -409,13 +413,17 @@ src/
 ## 8. Componentes-Chave
 
 ### Sidebar (`src/components/layout/sidebar.tsx`)
-- **Multi-client:** `clients.length > 1` → mostra `<ClientSelector>` dropdown; caso contrário, info estática (nome + dot verde)
-- `ClientSelector` — dropdown com lista de clientes, checkmark no selecionado, chama `setSelectedClientId`
-- Sem botão Sign out nem item Settings — ambos movidos para o dropdown do avatar no Topbar
-- Submenu Campaigns expansível: Performance / Ad Groups / Keywords / Ads
-- Auto-expande submenu quando qualquer `/dashboard/campaigns/*` está ativo
-- `NavItem` helper com prop `exact` para Overview
-- Nav items: `py-2.5`, sub-items campaigns: `py-2 text-[12.5px]`, gap entre items: `gap-1`
+- Extraído em `SidebarContent({ onClose? })` — shared entre desktop e mobile; exibe X quando `onClose` fornecido
+- `export function Sidebar()` — desktop only (`hidden md:flex`), wraps SidebarContent sem onClose
+- `export function MobileSidebar({ open, onClose })` — backdrop + drawer com `translate-x`, auto-fecha ao mudar de rota via `usePathname` + `useRef`
+- **Multi-client:** `clients.length > 1` → mostra `<ClientSelector>` dropdown; caso contrário, info estática
+- Sem Sign out nem Settings — ambos no dropdown do avatar no Topbar
+- Submenu Campaigns expansível; auto-expande quando qualquer `/dashboard/campaigns/*` está ativo
+
+### DashboardShell (`src/app/dashboard/shell.tsx`)
+- `"use client"` — gere `sidebarOpen` state
+- Renderiza: `<Sidebar>` (hidden md:flex) + `<MobileSidebar>` + `<Topbar onMenuClick>` + `<main>` + `<Footer>`
+- `layout.tsx` simplificado para server component — só envolve em `<AccountProvider>` + `<DashboardShell>`
 
 ### AccountContext (`src/contexts/account-context.tsx`)
 ```typescript
@@ -424,21 +432,27 @@ interface ClientOption { id: string; name: string; }
 interface AccountContextValue {
   accountId: number;          // external_customer_id do Google Ads
   accountName: string;        // nome da conta Google Ads
-  displayName: string;        // nome do utilizador (de dashboard_users)
+  displayName: string;        // nome completo do utilizador (de dashboard_users)
+  firstName: string;          // primeiro nome (de dashboard_users.first_name)
+  avatarUrl: string;          // URL pública do avatar (de dashboard_users.avatar_url)
   loading: boolean;
   clients: ClientOption[];    // lista de clientes (vazia se user tem só 1)
   selectedClientId: string;   // client_id activo
   setSelectedClientId: (id: string) => void;
 }
 // Cadeia: auth.getUser() → dashboard_users (todos os rows) → gads_accounts (por selectedClientId)
+// Query: select("client_id, display_name, first_name, avatar_url")
 ```
 
 ### Topbar (`src/components/layout/topbar.tsx`)
-- Avatar (círculo azul) abre dropdown com: header (nome + email), 3 links de Settings, Sign out
-- Links navegam para `/dashboard/settings?tab=personal|account|password`
-- Item ativo destacado quando `pathname.startsWith("/dashboard/settings")` + tab coincide
-- Click outside fecha via `useRef` + `mousedown` listener; animação `dropdownIn` (opacity + translateY)
-- Email buscado via `supabase.auth.getUser()` em `useEffect` local
+- Recebe `onMenuClick?` prop — hamburger button (md:hidden) chama o callback do DashboardShell
+- **Saudação 3 linhas:** `Good [morning/afternoon/evening], {firstName} 👋` → clínica (ícone pin + accountName) → data
+  - `greetingName = firstName || displayName.split(" ")[0] || "there"`
+  - Clínica atualiza automaticamente ao trocar de cliente no ClientSelector
+- Avatar circle: mostra `<img src={avatarUrl}>` se disponível, senão inicial do `displayName`
+- Avatar abre dropdown: header (displayName + email), 3 links Settings, Sign out
+- Click outside fecha via `useRef` + `mousedown`; animação `dropdownIn`
+- Email via `supabase.auth.getUser()` em `useEffect` local
 - Sign out: `supabase.auth.signOut()` + `router.push("/login")` + `router.refresh()`
 
 ### usePeriod
@@ -481,6 +495,7 @@ const sorted = sortRows(rows, sort.column, sort.dir);
 7. **Ad Copy:** `final_urls` é JSON string, `path1`/`path2` podem ser a string `"null"`, `headlines_raw`/`descriptions_raw` são JSON strings
 8. **documents:** filtrar por `client_id` (UUID), não por `external_customer_id`; usar `content_md_en ?? content_md`
 9. **Bigints do Supabase:** campos como `keyword_id`, `campaign_id`, `ad_group_id`, `external_customer_id` chegam como **string** no JS — sempre usar `String()` como chave de Map e `Number()` para operações numéricas
+10. **Conversions:** Google Ads usa atribuição fracionária (ex: `21.430491`). Sempre usar `Math.round()` antes de exibir conversões na UI. CPA usa o decimal internamente para o cálculo, mas exibe com `.toFixed(2)`
 
 ---
 
@@ -488,20 +503,23 @@ const sorted = sortRows(rows, sort.column, sort.dir);
 
 - ✅ **Auth completo:** login page, middleware, sessão via cookies, logout
 - ✅ **RLS ativo** em todas as tabelas do schema `ads`
-- ✅ **AccountContext** multi-client: dois effects, ClientSelector condicional na sidebar
+- ✅ **AccountContext** multi-client: dois effects, ClientSelector condicional na sidebar; expõe `firstName`, `avatarUrl`
 - ✅ Overview completo com dados reais
 - ✅ KPI cards, bar chart, donut chart, campaign table compact, optimization accordion
 - ✅ Filtro de período: 7d / 14d / 30d / Custom
-- ✅ Sidebar expansível com submenu Campaigns, ClientSelector (admin), Settings, Sign out
-- ✅ Campaigns: drill-down múltiplos accordions, ícones, sort clicável
+- ✅ Sidebar: desktop fixo + mobile drawer com backdrop, auto-fecha ao navegar
+- ✅ Campaigns: mobile card layout (MobileCampaignCard) + desktop tabela com drill-down, sort clicável
 - ✅ Ad Groups: tabela flat com coluna Campaign, sort clicável
 - ✅ Keywords: hierarquia via `v_keyword_metrics`, sort clicável
 - ✅ Ads: RSA previews Desktop/Mobile, seeded random
 - ✅ Insights: heatmap horário + auction insights
 - ✅ Optimization History: filtros status + categoria + período
 - ✅ Company Profile: 4 seções, parseia markdown, `content_md_en` com fallback
-- ✅ Settings: Personal Data (editable), Account (read-only), Change Password; lê `?tab=` da URL; Suspense boundary
-- ✅ Topbar: dropdown no avatar com Settings (3 tabs) + Sign out
+- ✅ Settings: Personal Data (editable + avatar upload), Account (read-only), Change Password; tabs mobile; Suspense boundary
+- ✅ Topbar: saudação com firstName, clínica (pin icon), data; hamburger mobile; avatar com foto; dropdown Settings + Sign out
+- ✅ **Responsividade mobile completa:** todas as páginas, overflow-x-auto nas tabelas, card layouts onde necessário
+- ✅ **Avatar upload:** Supabase Storage `avatars/{user_id}/avatar`, preview imediato, URL salva em `dashboard_users.avatar_url`
+- ✅ **Conversions arredondadas** com `Math.round()` em todos os componentes de exibição
 - ✅ Tipografia refinada: tokens documentados em `settings/page.tsx` (22px bold / 14px / p-7 / inputs rounded-xl)
 - ✅ Loading skeletons em todas as páginas
 - ✅ TypeScript sem erros
@@ -522,9 +540,9 @@ const sorted = sortRows(rows, sort.column, sort.dir);
 - [ ] Variar descriptions entre os previews do Ad Copy (actualmente podem repetir)
 - [ ] Geo performance na página Insights (tabela `fact_geo_performance_window`)
 - [ ] Sort clicável na tabela de Campaigns do Overview (compact)
+- [ ] Card layout mobile para Ad Groups e Keywords (actualmente apenas scroll horizontal)
 
 ### Fase pós-deploy
-- [ ] Responsividade básica (mobile/tablet)
 - [ ] Error handling user-facing
 - [ ] Meta Ads integration
 
