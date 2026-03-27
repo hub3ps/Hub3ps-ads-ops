@@ -357,7 +357,6 @@ function SidebarContent({
             >
               <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            {!collapsed && <span>Collapse</span>}
           </button>
         </div>
       )}
@@ -367,28 +366,36 @@ function SidebarContent({
 
 // ── Desktop Sidebar ───────────────────────────────────────────────────────────
 
-export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
-
-  // Read from localStorage after mount to avoid SSR mismatch
-  useEffect(() => {
-    setCollapsed(localStorage.getItem("sidebar-collapsed") === "true");
-  }, []);
-
-  const toggle = () => {
-    setCollapsed((prev) => {
-      const next = !prev;
-      localStorage.setItem("sidebar-collapsed", String(next));
-      return next;
-    });
-  };
-
+export function Sidebar({
+  collapsed = false,
+  onToggle,
+  onResizeStart,
+  width = 224,
+  isResizing = false,
+}: {
+  collapsed?: boolean;
+  onToggle?: () => void;
+  onResizeStart?: (e: React.MouseEvent) => void;
+  width?: number;
+  isResizing?: boolean;
+}) {
   return (
     <aside
-      style={{ width: collapsed ? "64px" : "224px", transition: "width 300ms ease" }}
-      className="shrink-0 flex flex-col bg-white border-r border-[#e2e4ea] h-screen sticky top-0 overflow-hidden"
+      style={{
+        width: collapsed ? 64 : width,
+        transition: isResizing ? "none" : "width 300ms ease",
+      }}
+      className="relative shrink-0 flex flex-col bg-white border-r border-[#e2e4ea] h-screen sticky top-0 overflow-hidden"
     >
-      <SidebarContent collapsed={collapsed} onToggle={toggle} />
+      <SidebarContent collapsed={collapsed} onToggle={onToggle} />
+
+      {/* Drag handle */}
+      {onResizeStart && (
+        <div
+          onMouseDown={onResizeStart}
+          className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-[#4285F4]/20 active:bg-[#4285F4]/40 transition-colors z-10"
+        />
+      )}
     </aside>
   );
 }
