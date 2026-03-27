@@ -1,7 +1,7 @@
 # Ads AI Dashboard — Project Reference
 
 > Referência completa para conversas futuras e contexto após compactação.
-> **Última atualização:** 2026-03-27 (Sprint 9 — All accounts / Portfolio Overview)
+> **Última atualização:** 2026-03-27 (Sprint 9 — All accounts / Portfolio Overview / Profile parser bilíngue)
 
 ---
 
@@ -322,7 +322,7 @@ src/
         ├── keywords.ts                     # getKeywords() → CampaignKeywords[] via v_keyword_metrics
         ├── insights.ts                     # getHourlyData(), getAuctionInsights()
         ├── optimizations.ts               # getOptimizations(supabase, accountId, options?)
-        ├── profile.ts                     # getProfileData() + parsers: parsePlaybook, parseConfigInventory, parseDataContract
+        ├── profile.ts                     # getProfileData() + parsers: parsePlaybook, parseConfigInventory, parseDataContract — todos bilíngues (PT + EN)
         └── portfolio.ts                   # getPortfolioData(supabase, accountIds[], start, end) → PortfolioClinic[]
 ```
 
@@ -400,6 +400,7 @@ src/
 - Fetch paralelo: `clients` + `documents` por `client_id`
 - Usa `content_md_en ?? content_md` como fallback
 - Parseia markdown sem biblioteca externa (split por linhas, regex)
+- **Parsers bilíngues (PT + EN):** todos os `getSection()`, `extractBold()` e campos de tabela aceitam labels em português e inglês — fallback: tenta PT, se vazio tenta EN
 - **4 seções:**
   1. **Clinic Overview** — grid 2 colunas: name, website (link), address, contact, timezone, currency + Role paragraph
   2. **Services Advertised** — pills verdes (✓ can advertise) + pills vermelhas (✗ cannot advertise)
@@ -526,7 +527,7 @@ const sorted = sortRows(rows, sort.column, sort.dir);
 - ✅ Ads: RSA previews Desktop/Mobile, seeded random
 - ✅ Insights: heatmap horário + auction insights
 - ✅ Optimization History: filtros status + categoria + período
-- ✅ Company Profile: 4 seções, parseia markdown, `content_md_en` com fallback
+- ✅ Company Profile: 4 seções, parseia markdown, `content_md_en` com fallback; parsers bilíngues PT + EN
 - ✅ Settings: Personal Data (editable + avatar upload), Account (read-only), Change Password; tabs mobile; Suspense boundary
 - ✅ Topbar: saudação com firstName, clínica (pin icon), data; hamburger mobile; avatar com foto; dropdown Settings + Sign out
 - ✅ **Responsividade mobile completa:** todas as páginas, overflow-x-auto nas tabelas, card layouts onde necessário

@@ -108,12 +108,13 @@ function stripBold(s: string): string {
 
 function parsePlaybook(md: string): { clinic: Partial<ClinicInfo>; services: ServicesData } {
   // Header metadata (lines like "**Site:** https://...")
-  const site  = extractBold(md, "Site");
-  const addr  = extractBold(md, "Endereço");
-  const contact = extractBold(md, "Contato");
+  const site    = extractBold(md, "Site") || extractBold(md, "Website");
+  const addr    = extractBold(md, "Endereço") || extractBold(md, "Address");
+  const contact = extractBold(md, "Contato") || extractBold(md, "Contact");
 
-  // Role: first non-empty text paragraph after "## 1) Identidade"
-  const roleSection = getSection(md, "1) Identidade");
+  // Role: first non-empty text paragraph after "## 1) Identidade" or "## 1) Identity"
+  const roleSectionPt = getSection(md, "1) Identidade");
+  const roleSection = roleSectionPt.length > 0 ? roleSectionPt : getSection(md, "1) Identity");
   let role = "";
   for (const line of roleSection) {
     const t = line.trim();
@@ -124,15 +125,16 @@ function parsePlaybook(md: string): { clinic: Partial<ClinicInfo>; services: Ser
   }
 
   // Services section (## 3)
-  const svcLines = getSection(md, "3) Serviços");
+  const svcLinesPt = getSection(md, "3) Serviços");
+  const svcLines = svcLinesPt.length > 0 ? svcLinesPt : getSection(md, "3) Services");
   const allowed: ServicesData["allowed"] = [];
   const blocked: ServicesData["blocked"] = [];
   let current: "none" | "alta" | "media" | "blocked" = "none";
 
   for (const line of svcLines) {
-    if (line.includes("PRIORIDADE ALTA"))  { current = "alta";    continue; }
-    if (line.includes("PRIORIDADE MÉDIA")) { current = "media";   continue; }
-    if (line.includes("NÃO ANUNCIAR"))     { current = "blocked"; continue; }
+    if (line.includes("PRIORIDADE ALTA")  || line.includes("HIGH PRIORITY"))   { current = "alta";    continue; }
+    if (line.includes("PRIORIDADE MÉDIA") || line.includes("MEDIUM PRIORITY")) { current = "media";   continue; }
+    if (line.includes("NÃO ANUNCIAR")     || line.includes("DO NOT ADVERTISE")) { current = "blocked"; continue; }
 
     if (line.startsWith("- ") && (current === "alta" || current === "media")) {
       const raw = stripBold(line.replace(/^- /, ""));
@@ -157,7 +159,8 @@ function parsePlaybook(md: string): { clinic: Partial<ClinicInfo>; services: Ser
 }
 
 function parseConfigInventory(md: string): CampaignConfig[] {
-  const sectionLines = getSection(md, "1) Campanhas ativas");
+  const sectionLinesPt = getSection(md, "1) Campanhas ativas");
+  const sectionLines = sectionLinesPt.length > 0 ? sectionLinesPt : getSection(md, "1) Active Campaigns");
   const campaigns: CampaignConfig[] = [];
   let cur: CampaignConfig | null = null;
   let inAdGroups = false;
@@ -168,9 +171,9 @@ function parseConfigInventory(md: string): CampaignConfig[] {
     if (agLines.length) {
       const rows = parseTable(agLines);
       cur.adGroups = rows.map((r) => ({
-        name:   r["Ad Group"] ?? "",
-        tcpa:   r["tCPA alvo (NZD)"] ?? "",
-        intent: r["Intenção principal"] ?? "",
+        name:   r["Ad Group"] ?? r["Ad group"] ?? "",
+        tcpa:   r["tCPA alvo (NZD)"] ?? r["tCPA Target (NZD)"] ?? r["tCPA target (NZD)"] ?? "",
+        intent: r["Intenção principal"] ?? r["Primary Intent"] ?? r["Primary intent"] ?? "",
       }));
     }
     campaigns.push(cur);
@@ -180,20 +183,36 @@ function parseConfigInventory(md: string): CampaignConfig[] {
   }
 
   for (const line of sectionLines) {
-    if (line.startsWith("### Campanha") && !line.toLowerCase().includes("pausada") && !line.toLowerCase().includes("pausa")) {
+    if (
+      (line.startsWith("### Campanha") || line.startsWith("### Campaign")) &&
+      !line.toLowerCase().includes("pausada") &&
+      !line.toLowerCase().includes("paused") &&
+      !line.toLowerCase().includes("pausa")
+    ) {
       flush();
-      const name = line.replace(/^### Campanha \d+: /, "").trim();
+      const name = line
+        .replace(/^### Campanha \d+: /, "")
+        .replace(/^### Campaign \d+: /, "")
+        .replace(/^### Campaign: /, "")
+        .trim();
       cur = { name, budget: "", bidding: "", schedule: "", coverage: "", adGroups: [] };
     } else if (line.startsWith("###")) {
-      flush(); // e.g. "### Campanhas pausadas"
+      flush(); // e.g. "### Campanhas pausadas" / "### Paused Campaigns"
     } else if (cur) {
-      if (line.includes("**Budget:**"))           cur.budget   = stripBold(line.replace(/.*\*\*Budget:\*\*\s*/, ""));
-      if (line.includes("**Bidding:**"))           cur.bidding  = stripBold(line.replace(/.*\*\*Bidding:\*\*\s*/, ""));
-      if (line.includes("**Programação:**"))       cur.schedule = stripBold(line.replace(/.*\*\*Programação:\*\*\s*/, ""));
-      if (line.includes("**Cobertura (geo):**"))   cur.coverage = stripBold(line.replace(/.*\*\*Cobertura \(geo\):\*\*\s*/, ""));
-      if (line.includes("**Ad groups:**"))         { inAdGroups = true; continue; }
-      if (inAdGroups && line.startsWith("---"))    { inAdGroups = false; continue; }
-      if (inAdGroups && line.includes("|"))        agLines.push(line);
+      if (line.includes("**Budget:**"))
+        cur.budget   = stripBold(line.replace(/.*\*\*Budget:\*\*\s*/, ""));
+      if (line.includes("**Bidding:**"))
+        cur.bidding  = stripBold(line.replace(/.*\*\*Bidding:\*\*\s*/, ""));
+      if (line.includes("**Programação:**") || line.includes("**Schedule:**"))
+        cur.schedule = stripBold(line.replace(/.*\*\*(Programação|Schedule):\*\*\s*/, ""));
+      if (line.includes("**Cobertura (geo):**") || line.includes("**Coverage (geo):**") || line.includes("**Coverage:**"))
+        cur.coverage = stripBold(line.replace(/.*\*\*(Cobertura \(geo\)|Coverage \(geo\)|Coverage):\*\*\s*/, ""));
+      if (line.includes("**Ad groups:**") || line.includes("**Ad Groups:**"))
+        { inAdGroups = true; continue; }
+      if (inAdGroups && line.startsWith("---"))
+        { inAdGroups = false; continue; }
+      if (inAdGroups && line.includes("|"))
+        agLines.push(line);
     }
   }
   flush();
@@ -202,42 +221,48 @@ function parseConfigInventory(md: string): CampaignConfig[] {
 
 function parseDataContract(md: string): ContractData {
   // Section 1 - objective
-  const objLines = getSection(md, "1) Objetivo");
+  const objLinesPt = getSection(md, "1) Objetivo");
+  const objLinesEn = objLinesPt.length > 0 ? objLinesPt : getSection(md, "1) Objective");
+  const objLines   = objLinesEn.length > 0 ? objLinesEn : getSection(md, "1) Marketing Objective");
   const objective = objLines
     .map((l) => l.trim())
     .filter((l) => l && !l.startsWith("#"))
     .join(" ");
 
   // Section 2 - conversion actions table
-  const convLines = getSection(md, "2) Conversion actions");
+  const convLinesPt = getSection(md, "2) Conversion actions");
+  const convLines   = convLinesPt.length > 0 ? convLinesPt : getSection(md, "2) Conversion Actions");
   const convTable = parseTable(convLines.filter((l) => l.includes("|")));
   const conversions: ConversionAction[] = convTable.map((r) => ({
-    name:    r["Action name"] ?? "",
-    primary: r["Primary?"] ?? "",
-    include: r["Include in conv.?"] ?? "",
-    note:    r["Observação"] ?? "",
+    name:    r["Action name"] ?? r["Action Name"] ?? r["Nome"] ?? "",
+    primary: r["Primary?"] ?? r["Primary"] ?? r["Primária?"] ?? "",
+    include: r["Include in conv.?"] ?? r["Include"] ?? r["Incluir?"] ?? "",
+    note:    r["Observação"] ?? r["Note"] ?? r["Notes"] ?? "",
   }));
 
-  // Tracking note: bold "Observação" line in section 2
+  // Tracking note: bold "Observação" / "Note" / "Tracking" line in section 2
   let trackingNote = "";
   let inNote = false;
   for (const line of convLines) {
-    if (line.startsWith("**Observação")) { inNote = true; }
+    if (line.startsWith("**Observação") || line.startsWith("**Note") || line.startsWith("**Tracking")) {
+      inNote = true;
+    }
     if (inNote) {
       const t = line.replace(/\*\*/g, "").trim();
       if (t) trackingNote += (trackingNote ? " " : "") + t;
       if (t === "" && trackingNote) break;
     }
   }
-  trackingNote = trackingNote.replace(/^Observação[^:]*:\s*/i, "");
+  trackingNote = trackingNote.replace(/^(Observação|Note|Tracking note)[^:]*:\s*/i, "");
 
   // Section 3 - CPA targets table
-  const kpiLines = getSection(md, "3) KPI");
+  const kpiLinesPt = getSection(md, "3) KPI");
+  const kpiLines   = kpiLinesPt.length > 0 ? kpiLinesPt : getSection(md, "3) Operational KPI");
   const cpaTable = parseTable(kpiLines.filter((l) => l.includes("|")));
   const cpaTargets: CpaTarget[] = cpaTable.map((r) => ({
-    campaign: r["Campanha"] ?? "",
-    adGroup:  r["Ad Group"] ?? "",
-    cpa:      r["CPA alvo (NZD)"] ?? "",
+    campaign: r["Campanha"] ?? r["Campaign"] ?? "",
+    adGroup:  r["Ad Group"] ?? r["Ad group"] ?? "",
+    cpa:      r["CPA alvo (NZD)"] ?? r["CPA Target (NZD)"] ?? r["CPA target (NZD)"] ?? r["Target CPA (NZD)"] ?? "",
   }));
 
   return { objective, conversions, cpaTargets, trackingNote };
