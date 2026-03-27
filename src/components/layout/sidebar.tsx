@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import { useAccount } from "@/contexts/account-context";
+import { useAccount, ALL_ACCOUNTS_ID } from "@/contexts/account-context";
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -105,6 +105,7 @@ function NavItem({
 function ClientSelector() {
   const { clients, selectedClientId, setSelectedClientId, displayName } = useAccount();
   const [open, setOpen] = useState(false);
+  const isAll = selectedClientId === ALL_ACCOUNTS_ID;
   const selected = clients.find((c) => c.id === selectedClientId);
 
   return (
@@ -115,9 +116,9 @@ function ClientSelector() {
         className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-[#f5f6f8] hover:bg-[#eceef2] transition-colors text-left"
       >
         <div className="flex items-center gap-2 min-w-0">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#34A853] shrink-0" />
+          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isAll ? "bg-[#4285F4]" : "bg-[#34A853]"}`} />
           <span className="text-[12px] font-medium text-[#111827] truncate">
-            {selected?.name ?? "Select account"}
+            {isAll ? "All accounts" : (selected?.name ?? "Select account")}
           </span>
         </div>
         <ChevronIcon open={open} />
@@ -125,6 +126,33 @@ function ClientSelector() {
 
       {open && (
         <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-[#e2e4ea] rounded-xl shadow-lg z-50 overflow-hidden">
+          {/* All accounts option */}
+          <button
+            onClick={() => { setSelectedClientId(ALL_ACCOUNTS_ID); setOpen(false); }}
+            className={cn(
+              "w-full flex items-center justify-between px-3 py-2.5 text-left transition-colors",
+              isAll ? "bg-[#eff6ff] text-[#4285F4]" : "text-[#374151] hover:bg-[#f5f6f8]",
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0">
+                <rect x="1" y="1" width="5" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
+                <rect x="8" y="1" width="5" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
+                <rect x="1" y="8" width="5" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
+                <rect x="8" y="8" width="5" height="5" rx="1.5" stroke="currentColor" strokeWidth="1.2" opacity="0.4" />
+              </svg>
+              <span className="text-[12px] font-medium">All accounts</span>
+            </div>
+            {isAll && (
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="shrink-0">
+                <path d="M2 6L5 9L10 3" stroke="#4285F4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </button>
+
+          <div className="border-t border-[#e2e4ea]" />
+
+          {/* Individual clients */}
           {clients.map((client) => {
             const isSelected = client.id === selectedClientId;
             return (

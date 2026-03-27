@@ -16,16 +16,18 @@ import {
   ChartSkeleton,
   TableSkeleton,
 } from "@/components/shared/loading-skeleton";
+import { PortfolioOverview } from "@/components/dashboard/portfolio-overview";
 
 export default function OverviewPage() {
   const { state, dateRange, setPreset, setCustomRange, label } = usePeriod(30);
-  const { accountId } = useAccount();
+  const { accountId, isAllAccounts } = useAccount();
   const [loading, setLoading] = useState(true);
   const [daily, setDaily] = useState<any[]>([]);
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [optimizations, setOptimizations] = useState<any[]>([]);
 
   useEffect(() => {
+    if (isAllAccounts) return;
     const supabase = createClient();
     setLoading(true);
     Promise.all([
@@ -38,7 +40,9 @@ export default function OverviewPage() {
         setCampaigns(camps);
       })
       .finally(() => setLoading(false));
-  }, [dateRange.start, dateRange.end, accountId]);
+  }, [dateRange.start, dateRange.end, accountId, isAllAccounts]);
+
+  if (isAllAccounts) return <PortfolioOverview />;
 
   return (
     <div className="space-y-5">

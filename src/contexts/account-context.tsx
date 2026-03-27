@@ -3,6 +3,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+export const ALL_ACCOUNTS_ID = "__all__";
+
 interface ClientOption {
   id: string;   // UUID (clients.id)
   name: string; // display name (clients.name)
@@ -15,6 +17,8 @@ interface AccountContextValue {
   firstName: string;
   avatarUrl: string;
   loading: boolean;
+  isAllAccounts: boolean;
+  allAccountIds: number[];
   // Multi-client support (populated when user has >1 client)
   clients: ClientOption[];
   selectedClientId: string;
@@ -32,6 +36,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading]               = useState(true);
   const [clients, setClients]               = useState<ClientOption[]>([]);
   const [selectedClientId, setSelectedClientId] = useState("");
+  const [allAccountIds, setAllAccountIds]   = useState<number[]>([]);
 
   // Step 1 — on mount: resolve user → all client_ids + display_name
   useEffect(() => {
@@ -71,6 +76,17 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
         setClients(
           clientIds.map((id) => ({ id, name: nameMap.get(id) ?? id })),
         );
+
+        // Fetch all external_customer_ids for the "All accounts" view
+        const { data: allAccounts } = await supabase
+          .schema("ads")
+          .from("gads_accounts")
+          .select("external_customer_id")
+          .in("client_id", clientIds);
+
+        if (allAccounts) {
+          setAllAccountIds(allAccounts.map((a) => Number(a.external_customer_id)));
+        }
       }
 
       // Default to first client — triggers Step 2 via the effect below
@@ -83,6 +99,14 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   // Step 2 — whenever selectedClientId changes: load gads_accounts
   useEffect(() => {
     if (!selectedClientId) return;
+
+    // "All accounts" selected — no specific account to load
+    if (selectedClientId === ALL_ACCOUNTS_ID) {
+      setAccountId(0);
+      setAccountName("All Accounts");
+      setLoading(false);
+      return;
+    }
 
     const supabase = createClient();
 
@@ -105,6 +129,8 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     loadAccount();
   }, [selectedClientId]);
 
+  const isAllAccounts = selectedClientId === ALL_ACCOUNTS_ID;
+
   return (
     <AccountContext.Provider
       value={{
@@ -114,6 +140,8 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
         firstName,
         avatarUrl,
         loading,
+        isAllAccounts,
+        allAccountIds,
         clients,
         selectedClientId,
         setSelectedClientId,

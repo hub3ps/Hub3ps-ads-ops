@@ -43,7 +43,7 @@ const SignOutIcon = () => (
 // ── Topbar ────────────────────────────────────────────────────────────────────
 
 export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
-  const { accountName, displayName, firstName, avatarUrl, loading } = useAccount();
+  const { accountName, displayName, firstName, avatarUrl, loading, isAllAccounts } = useAccount();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -123,13 +123,25 @@ export function Topbar({ onMenuClick }: { onMenuClick?: () => void }) {
               <h1 className="text-[15px] md:text-[17px] font-semibold text-[#111827]">
                 {greeting}, <span className="text-[#4285F4]">{greetingName}</span> 👋
               </h1>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-[#9ca3af] shrink-0">
-                  <path d="M6 1C3.79 1 2 2.79 2 5C2 7.5 6 11 6 11C6 11 10 7.5 10 5C10 2.79 8.21 1 6 1Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
-                  <circle cx="6" cy="5" r="1.5" stroke="currentColor" strokeWidth="1.2" />
-                </svg>
-                <span className="text-[13px] font-medium text-[#374151]">{accountName || "Dashboard"}</span>
-              </div>
+              {isAllAccounts ? (
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-[#4285F4] shrink-0">
+                    <rect x="1" y="1" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.1" />
+                    <rect x="7" y="1" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.1" />
+                    <rect x="1" y="7" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.1" />
+                    <rect x="7" y="7" width="4" height="4" rx="1" stroke="currentColor" strokeWidth="1.1" opacity="0.4" />
+                  </svg>
+                  <span className="text-[13px] font-medium text-[#4285F4]">All accounts</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-[#9ca3af] shrink-0">
+                    <path d="M6 1C3.79 1 2 2.79 2 5C2 7.5 6 11 6 11C6 11 10 7.5 10 5C10 2.79 8.21 1 6 1Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+                    <circle cx="6" cy="5" r="1.5" stroke="currentColor" strokeWidth="1.2" />
+                  </svg>
+                  <span className="text-[13px] font-medium text-[#374151]">{accountName || "Dashboard"}</span>
+                </div>
+              )}
               <p className="hidden sm:block text-[12px] md:text-[13px] text-[#9ca3af] mt-0.5">
                 {new Date().toLocaleDateString("en-NZ", {
                   weekday: "long",

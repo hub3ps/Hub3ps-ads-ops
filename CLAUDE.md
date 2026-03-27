@@ -1,7 +1,7 @@
 # Ads AI Dashboard — Project Reference
 
 > Referência completa para conversas futuras e contexto após compactação.
-> **Última atualização:** 2026-03-27 (Sprint 8 — Responsividade mobile + avatar upload + topbar refactor)
+> **Última atualização:** 2026-03-27 (Sprint 9 — All accounts / Portfolio Overview)
 
 ---
 
@@ -290,7 +290,8 @@ src/
 │   │   ├── conversion-split.tsx            # Donut chart + progress bars por campanha
 │   │   ├── campaign-table.tsx              # Tabela campanhas (prop compact para col estreita)
 │   │   ├── ad-copy-section.tsx             # RSA previews: Campaign → Ad Group → cards Desktop/Mobile
-│   │   └── optimization-list.tsx           # Accordion: client_title + client_impact + savings
+│   │   ├── optimization-list.tsx           # Accordion: client_title + client_impact + savings
+│   │   └── portfolio-overview.tsx          # Vista "All accounts": KPI cards + tabela expandível por clínica + cards mobile
 │   └── shared/
 │       ├── google-dots.tsx
 │       ├── platform-badge.tsx
@@ -321,7 +322,8 @@ src/
         ├── keywords.ts                     # getKeywords() → CampaignKeywords[] via v_keyword_metrics
         ├── insights.ts                     # getHourlyData(), getAuctionInsights()
         ├── optimizations.ts               # getOptimizations(supabase, accountId, options?)
-        └── profile.ts                     # getProfileData() + parsers: parsePlaybook, parseConfigInventory, parseDataContract
+        ├── profile.ts                     # getProfileData() + parsers: parsePlaybook, parseConfigInventory, parseDataContract
+        └── portfolio.ts                   # getPortfolioData(supabase, accountIds[], start, end) → PortfolioClinic[]
 ```
 
 ---
@@ -334,12 +336,22 @@ src/
 - `signInWithPassword` → erro inline se falhar → redirect `/dashboard` no sucesso
 
 ### Overview (`/dashboard`)
+- Se `isAllAccounts` → renderiza `<PortfolioOverview />` em vez do Overview normal
 - KPI cards: Impressions, Clicks, Spend, Conversions (com CTR e CPA)
 - Bar chart semanal de clicks com highlight na barra máxima (Recharts)
 - Donut chart + progress bars de conversões por campanha
 - Tabela de campanhas compact (Campaign, Spend, CPA)
 - Optimization list accordion (client_title + client_impact + savings)
 - Layout: OptimizationList (col-span-2) + CampaignTable compact (col-span-1)
+
+### Portfolio Overview (`/dashboard` com All accounts selecionado)
+- Ativado quando `isAllAccounts === true` (sentinel `ALL_ACCOUNTS_ID = "__all__"`)
+- **4 KPI cards** (mesmo design que kpi-cards.tsx): Impressions, Clicks, Spend, Conversions — soma de todas as contas
+- **Desktop:** tabela expandível — linha por clínica (nome clicável → muda `selectedClientId`), spend share bar, chevron expande campanhas com status dot
+- **Mobile:** cards por clínica com grid 3-col (Spend/Conv./Clicks), botão expande campanhas
+- **Total row** no rodapé da tabela desktop
+- `getPortfolioData()` — agrega `fact_campaign_daily` + join `campaign_inventory` + `gads_accounts`; retorna `PortfolioClinic[]` sorted by spend DESC
+- Clicar no nome da clínica chama `setSelectedClientId(client_id)` → troca para conta individual
 
 ### Campaigns — Performance (`/dashboard/campaigns`)
 - **Mobile (`md:hidden`):** `MobileCampaignCard` — métricas primárias (Spend/Conv./CPA) em grid 3 col, métricas secundárias (imp·clicks·CTR) em linha, botão "View ad groups" expande mini-cards por ad group
@@ -520,6 +532,7 @@ const sorted = sortRows(rows, sort.column, sort.dir);
 - ✅ **Responsividade mobile completa:** todas as páginas, overflow-x-auto nas tabelas, card layouts onde necessário
 - ✅ **Avatar upload:** Supabase Storage `avatars/{user_id}/avatar`, preview imediato, URL salva em `dashboard_users.avatar_url`
 - ✅ **Conversions arredondadas** com `Math.round()` em todos os componentes de exibição
+- ✅ **All accounts / Portfolio Overview:** `ALL_ACCOUNTS_ID`, `isAllAccounts`, `allAccountIds` no AccountContext; ClientSelector com opção "All accounts" no topo; PortfolioOverview com KPI cards + tabela expandível desktop + cards mobile
 - ✅ Tipografia refinada: tokens documentados em `settings/page.tsx` (22px bold / 14px / p-7 / inputs rounded-xl)
 - ✅ Loading skeletons em todas as páginas
 - ✅ TypeScript sem erros
