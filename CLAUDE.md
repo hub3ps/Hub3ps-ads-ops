@@ -1,7 +1,7 @@
 # Ads AI Dashboard — Project Reference
 
 > Referência completa para conversas futuras e contexto após compactação.
-> **Última atualização:** 2026-03-27 (Sprint 9 — All accounts / Portfolio Overview / Profile parser bilíngue)
+> **Última atualização:** 2026-03-27 (Sprint 10 — Sidebar colapsável + fix font DM Sans)
 
 ---
 
@@ -246,9 +246,11 @@ Inputs:           px-4 py-3 text-[14px] rounded-xl border border-[#e2e4ea]
 
 ### DM Sans — variable font
 ```typescript
-// ✅ correto
+// ✅ correto (Next.js 16+ com Turbopack — axes: ["opsz"] causa erro ao recompilar do zero)
+const dmSans = DM_Sans({ variable: "--font-dm-sans", subsets: ["latin"] });
+// ❌ errado — axes causa erro de compilação no Turbopack ao limpar cache
 const dmSans = DM_Sans({ variable: "--font-dm-sans", subsets: ["latin"], axes: ["opsz"] });
-// ❌ errado — causa erro de axes em non-variable font
+// ❌ errado — weight array não pode ser usado com axes
 const dmSans = DM_Sans({ weight: ["300", "400"], axes: ["opsz"] });
 ```
 
@@ -426,15 +428,18 @@ src/
 ## 8. Componentes-Chave
 
 ### Sidebar (`src/components/layout/sidebar.tsx`)
-- Extraído em `SidebarContent({ onClose? })` — shared entre desktop e mobile; exibe X quando `onClose` fornecido
-- `export function Sidebar()` — desktop only (`hidden md:flex`), wraps SidebarContent sem onClose
-- `export function MobileSidebar({ open, onClose })` — backdrop + drawer com `translate-x`, auto-fecha ao mudar de rota via `usePathname` + `useRef`
+- Extraído em `SidebarContent({ onClose?, collapsed?, onToggle? })` — shared entre desktop e mobile
+- **Colapsável:** `export function Sidebar()` — gere o próprio estado `collapsed` via `useState(false)` + `useEffect` que lê `localStorage("sidebar-collapsed")` após mount (evita hydration mismatch)
+- Largura via `style={{ width: collapsed ? "64px" : "224px", transition: "width 300ms ease" }}` (inline style — mais confiável que classes Tailwind dinâmicas com Turbopack)
+- Colapsado: logo mostra só os 4 dots; client selector mostra inicial ou grid icon; platform badges somem; nav items mostram só ícone com `title` tooltip; Campaigns colapsa pra link direto; botão seta no footer faz toggle
+- `export function MobileSidebar({ open, onClose })` — backdrop + drawer com `translate-x`, auto-fecha ao mudar de rota via `usePathname` + `useRef`; sempre expandida, sem suporte a collapse
 - **Multi-client:** `clients.length > 1` → mostra `<ClientSelector>` dropdown; caso contrário, info estática
 - Sem Sign out nem Settings — ambos no dropdown do avatar no Topbar
 - Submenu Campaigns expansível; auto-expande quando qualquer `/dashboard/campaigns/*` está ativo
 
 ### DashboardShell (`src/app/dashboard/shell.tsx`)
-- `"use client"` — gere `sidebarOpen` state
+- `"use client"` — gere `sidebarOpen` state (mobile drawer)
+- Sidebar collapse é self-contained no componente `Sidebar` — shell não precisa saber do estado
 - Renderiza: `<Sidebar>` (hidden md:flex) + `<MobileSidebar>` + `<Topbar onMenuClick>` + `<main>` + `<Footer>`
 - `layout.tsx` simplificado para server component — só envolve em `<AccountProvider>` + `<DashboardShell>`
 
@@ -520,7 +525,7 @@ const sorted = sortRows(rows, sort.column, sort.dir);
 - ✅ Overview completo com dados reais
 - ✅ KPI cards, bar chart, donut chart, campaign table compact, optimization accordion
 - ✅ Filtro de período: 7d / 14d / 30d / Custom
-- ✅ Sidebar: desktop fixo + mobile drawer com backdrop, auto-fecha ao navegar
+- ✅ Sidebar: desktop colapsável (w-56↔w-16, estado em localStorage) + mobile drawer com backdrop, auto-fecha ao navegar
 - ✅ Campaigns: mobile card layout (MobileCampaignCard) + desktop tabela com drill-down, sort clicável
 - ✅ Ad Groups: tabela flat com coluna Campaign, sort clicável
 - ✅ Keywords: hierarquia via `v_keyword_metrics`, sort clicável
@@ -537,6 +542,7 @@ const sorted = sortRows(rows, sort.column, sort.dir);
 - ✅ Tipografia refinada: tokens documentados em `settings/page.tsx` (22px bold / 14px / p-7 / inputs rounded-xl)
 - ✅ Loading skeletons em todas as páginas
 - ✅ TypeScript sem erros
+- ✅ **Fix font DM Sans:** removido `axes: ["opsz"]` — causa erro de compilação no Turbopack 16.2.1 ao limpar cache `.next`
 - ✅ Dockerfile com `output: standalone`, ARG/ENV para vars Supabase, deploy no EasyPanel
 
 ---

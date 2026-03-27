@@ -10,7 +10,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen bg-[#f5f6f8] overflow-hidden">
-      {/* Desktop sidebar */}
+      {/* Desktop sidebar — manages its own collapsed state internally */}
       <div className="hidden md:flex">
         <Sidebar />
       </div>
