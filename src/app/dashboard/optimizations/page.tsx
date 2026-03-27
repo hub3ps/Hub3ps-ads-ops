@@ -9,12 +9,13 @@ import { usePeriod } from "@/hooks/use-period";
 import { PeriodSelector } from "@/components/shared/period-selector";
 import { OptimizationList } from "@/components/dashboard/optimization-list";
 import { TableSkeleton } from "@/components/shared/loading-skeleton";
+import { SelectAccountPrompt } from "@/components/shared/select-account-prompt";
 
 const ALL_CATEGORIES = Object.keys(categoryStyles);
 const ALL_STATUSES = Object.keys(statusStyles);
 
 export default function OptimizationsPage() {
-  const { accountId } = useAccount();
+  const { accountId, isAllAccounts } = useAccount();
   const { state, dateRange, setPreset, setCustomRange, label } = usePeriod(30);
   const [loading, setLoading] = useState(true);
   const [optimizations, setOptimizations] = useState<any[]>([]);
@@ -40,6 +41,20 @@ export default function OptimizationsPage() {
 
   function toggleFilter(list: string[], setList: (v: string[]) => void, val: string) {
     setList(list.includes(val) ? list.filter((x) => x !== val) : [...list, val]);
+  }
+
+  if (isAllAccounts) {
+    return (
+      <div className="space-y-5">
+        <div>
+          <h2 className="text-[22px] font-bold text-[#111827]">Optimizations</h2>
+          <p className="text-[14px] text-[#9ca3af] mt-1">Select an account to view data</p>
+        </div>
+        <div className="bg-white rounded-xl border border-[#e2e4ea] shadow-sm">
+          <SelectAccountPrompt />
+        </div>
+      </div>
+    );
   }
 
   return (

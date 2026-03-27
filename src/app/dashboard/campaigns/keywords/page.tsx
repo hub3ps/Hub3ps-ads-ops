@@ -8,6 +8,7 @@ import { usePeriod } from "@/hooks/use-period";
 import { useAccount } from "@/contexts/account-context";
 import { PeriodSelector } from "@/components/shared/period-selector";
 import { TableSkeleton } from "@/components/shared/loading-skeleton";
+import { SelectAccountPrompt } from "@/components/shared/select-account-prompt";
 import { useSort, sortRows, type SortState } from "@/hooks/use-sort";
 import { cn } from "@/lib/utils";
 
@@ -215,7 +216,7 @@ function CampaignAccordion({ campaign }: { campaign: CampaignKeywords }) {
 
 export default function CampaignKeywordsPage() {
   const { state, dateRange, setPreset, setCustomRange, label } = usePeriod(30);
-  const { accountId } = useAccount();
+  const { accountId, isAllAccounts } = useAccount();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<CampaignKeywords[]>([]);
 
@@ -229,6 +230,20 @@ export default function CampaignKeywordsPage() {
 
   const totalCampaigns = data.length;
   const totalKw = data.reduce((s, c) => s + c.adGroups.reduce((a, ag) => a + ag.keywords.length, 0), 0);
+
+  if (isAllAccounts) {
+    return (
+      <div className="space-y-5">
+        <div>
+          <h2 className="text-[22px] font-bold text-[#111827]">Keywords</h2>
+          <p className="text-[14px] text-[#9ca3af] mt-1">Select an account to view data</p>
+        </div>
+        <div className="bg-white rounded-xl border border-[#e2e4ea] shadow-sm">
+          <SelectAccountPrompt />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">

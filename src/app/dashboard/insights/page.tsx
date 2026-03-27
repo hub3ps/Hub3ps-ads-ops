@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getHourlyData, getAuctionInsights } from "@/lib/queries/insights";
 import { TableSkeleton, ChartSkeleton } from "@/components/shared/loading-skeleton";
 import { useAccount } from "@/contexts/account-context";
+import { SelectAccountPrompt } from "@/components/shared/select-account-prompt";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const HOURS = Array.from({ length: 24 }, (_, i) =>
@@ -21,7 +22,7 @@ function getHeatmapColor(value: number, max: number): string {
 }
 
 export default function InsightsPage() {
-  const { accountId } = useAccount();
+  const { accountId, isAllAccounts } = useAccount();
   const [loading, setLoading] = useState(true);
   const [hourlyData, setHourlyData] = useState<any[]>([]);
   const [auctionData, setAuctionData] = useState<any[]>([]);
@@ -50,6 +51,20 @@ export default function InsightsPage() {
     heatmap[day][row.hour_of_day] = (heatmap[day][row.hour_of_day] ?? 0) + clicks;
     if (heatmap[day][row.hour_of_day] > maxClicks) maxClicks = heatmap[day][row.hour_of_day];
   });
+
+  if (isAllAccounts) {
+    return (
+      <div className="space-y-5">
+        <div>
+          <h2 className="text-[22px] font-bold text-[#111827]">Insights</h2>
+          <p className="text-[14px] text-[#9ca3af] mt-1">Select an account to view data</p>
+        </div>
+        <div className="bg-white rounded-xl border border-[#e2e4ea] shadow-sm">
+          <SelectAccountPrompt />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">

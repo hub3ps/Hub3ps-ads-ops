@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getProfileData, type ProfileData, type CampaignConfig, type AdGroupRow } from "@/lib/queries/profile";
 import { useAccount } from "@/contexts/account-context";
 import { cn } from "@/lib/utils";
+import { SelectAccountPrompt } from "@/components/shared/select-account-prompt";
 
 // ── Section wrapper ───────────────────────────────────────────────────────────
 
@@ -419,7 +420,7 @@ function ProfileSkeleton() {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
-  const { accountId, accountName } = useAccount();
+  const { accountId, accountName, isAllAccounts } = useAccount();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<ProfileData | null>(null);
 
@@ -432,6 +433,20 @@ export default function ProfilePage() {
       .catch((e) => console.error("getProfileData:", e))
       .finally(() => setLoading(false));
   }, [accountId]);
+
+  if (isAllAccounts) {
+    return (
+      <div className="space-y-5">
+        <div>
+          <h2 className="text-[22px] font-bold text-[#111827]">Company Profile</h2>
+          <p className="text-[14px] text-[#9ca3af] mt-1">Select an account to view data</p>
+        </div>
+        <div className="bg-white rounded-xl border border-[#e2e4ea] shadow-sm">
+          <SelectAccountPrompt />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
